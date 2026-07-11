@@ -33,7 +33,7 @@
 - [Run it yourself](#-run-it-yourself)
 - [Repository layout](#-repository-layout)
 - [Honest limitations](#-honest-limitations)
-- [Paper & citation](#-paper--citation)
+- [Author](#-author)
 
 ---
 
@@ -167,7 +167,7 @@ bundled results from `dashboard/src/data/events.json`, so it runs fully static w
 | Tabular ML | XGBoost · scikit-learn · pandas · NumPy |
 | Forecasting | XGBoost quantile regression · Prophet (baseline) |
 | Dashboard | React 19 · Vite · hand-built SVG charts (no chart library) |
-| Paper / figures | LaTeX · Matplotlib |
+| Figures | Matplotlib |
 
 ---
 
@@ -195,11 +195,9 @@ module1_cv_defect/                CV defect detection — training, ONNX export,
 module2_vernacular_alert/         Hindi alert generation
 module3_predictive_maintenance/   tool-wear (RUL) regression
 module4_demand_forecasting/       demand forecasting + quantile intervals
-paper/                            LaTeX paper (main.tex, refs.bib, figures)
 paper_figures/                    generated result figures
 make_paper_figures.py             regenerates every figure from saved results
 REPRODUCE.md                      dataset links + training commands
-PAPER_RESULTS.md                  consolidated results and caveats
 ```
 
 ---
@@ -222,14 +220,9 @@ PAPER_RESULTS.md                  consolidated results and caveats
 
 ---
 
-## 📄 Paper & citation
+## 👤 Author
 
-The full write-up — methods, tables, and figures — lives in [`paper/`](paper/)
-(`main.tex`, compiles on Overleaf). A consolidated results summary is in
-[`PAPER_RESULTS.md`](PAPER_RESULTS.md).
-
-**Author:** L. Yashwanth Reddy · School of CSE (AI & ML), SRM Institute of Science and
-Technology, Ramapuram, Chennai, India · `nadhahari44@gmail.com`
+**L. Yashwanth Reddy** · `nadhahari44@gmail.com`
 
 ---
 

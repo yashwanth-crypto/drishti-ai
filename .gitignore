@@ -31,6 +31,14 @@ Drishti-AI_Paper_Draft.pdf
 Drishti-AI_Project_Report.docx
 Drishti-AI_Project_Report.pdf
 
+# ---- Paper (kept locally, not published to the repo) ----
+paper/
+Drishti-AI_Paper_Draft.md
+Drishti-AI_Paper_Materials.md
+Drishti-AI_Paper_Plan.md
+PAPER_RESULTS.md
+module1_cv_defect/reports/module1_paper_section.md
+
 # ---- OS / editor ----
 .DS_Store
 Thumbs.db
