@@ -1,0 +1,39 @@
+# ---- Python ----
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# ---- Node / dashboard ----
+node_modules/
+dashboard/dist/
+dashboard/dist-ssr/
+*.local
+*.log
+dashboard/dev_out.log
+dashboard/dev_err.log
+
+# ---- Large raw datasets (public — see REPRODUCE.md to download) ----
+module1_cv_defect/data/
+module3_predictive_maintenance/data/
+module4_demand_forecasting/data/
+
+# ---- Large / regenerable model weights (optional to keep; see note in README) ----
+*.pt
+module1_cv_defect/models/*.onnx.data
+
+# ---- Build / export artifacts ----
+Drishti-AI_Overleaf.zip
+Drishti-AI_Paper.docx
+Drishti-AI_Paper_Draft.docx
+Drishti-AI_Paper_Draft.pdf
+Drishti-AI_Project_Report.docx
+Drishti-AI_Project_Report.pdf
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/

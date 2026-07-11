@@ -1,0 +1,409 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Module 1 Training Results — Drishti-AI</title>
+</head>
+<body>
+<style>
+  .viz-root {
+    --surface-1:      #fcfcfb;
+    --page:           #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-train:   #2a78d6; /* categorical slot 1 blue */
+    --series-val:     #1baf7a; /* categorical slot 2 aqua/green */
+    --seq-100:        #cde2fb;
+    --seq-450:        #2a78d6;
+    --good:           #0ca30c;
+  }
+  @media (prefers-color-scheme: dark) {
+    .viz-root {
+      --surface-1:      #1a1a19;
+      --page:           #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-train:   #3987e5;
+      --series-val:     #199e70;
+      --seq-100:        #184f95;
+      --seq-450:        #3987e5;
+      --good:           #0ca30c;
+    }
+  }
+
+  .viz-root {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page);
+    color: var(--text-primary);
+    padding: 32px 24px 56px;
+    max-width: 980px;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+  * { box-sizing: border-box; }
+
+  h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; }
+  .subtitle { color: var(--text-secondary); font-size: 14px; margin: 0 0 28px; }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .stat-tile {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .stat-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+  .stat-value { font-size: 26px; font-weight: 600; color: var(--text-primary); }
+  .stat-value.good { color: var(--good); }
+  .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 20px 12px;
+    margin-bottom: 20px;
+  }
+  .card h2 { font-size: 15px; font-weight: 600; margin: 0 0 2px; }
+  .card .card-sub { font-size: 12px; color: var(--text-muted); margin: 0 0 12px; }
+
+  .legend { display: flex; gap: 16px; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary); }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 2px; }
+
+  svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .axis-label { fill: var(--text-muted); font-size: 11px; }
+  .gridline { stroke: var(--gridline); stroke-width: 1; }
+  .baseline { stroke: var(--baseline); stroke-width: 1; }
+  .phase-divider { stroke: var(--text-muted); stroke-width: 1; }
+  .phase-label { fill: var(--text-muted); font-size: 10.5px; }
+
+  .tooltip {
+    position: absolute;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    pointer-events: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    display: none;
+    white-space: nowrap;
+    z-index: 10;
+  }
+  .tooltip .t-title { font-weight: 600; margin-bottom: 4px; color: var(--text-primary); }
+  .tooltip .t-row { display: flex; justify-content: space-between; gap: 14px; color: var(--text-secondary); }
+  .tooltip .t-row .v { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+
+  .chart-wrap { position: relative; }
+
+  table.cm {
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 4px 0 14px;
+  }
+  table.cm th, table.cm td {
+    padding: 10px 16px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  table.cm th { color: var(--text-secondary); font-weight: 500; font-size: 12px; }
+  table.cm td.cell { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text-primary); }
+  table.cm td.axis-name { color: var(--text-secondary); font-size: 12px; font-weight: 500; }
+
+  .files {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.9;
+  }
+  .files code {
+    background: var(--gridline);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 12px;
+    color: var(--text-primary);
+  }
+
+  .caveat {
+    font-size: 12px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    margin-top: 24px;
+    padding-top: 14px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 640px) {
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+
+<div class="viz-root">
+  <h1>Module 1 — Edge CV Defect Detection</h1>
+  <p class="subtitle">MobileNetV2 transfer learning · casting defect dataset (PILOT TECHNOCAST, Rajkot) · trained on RTX 5060 Laptop GPU</p>
+
+  <div class="stat-row">
+    <div class="stat-tile">
+      <div class="stat-label">Test accuracy</div>
+      <div class="stat-value good">99.44%</div>
+      <div class="stat-sub">715 held-out test images</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-label">Precision (avg)</div>
+      <div class="stat-value">99.32%</div>
+      <div class="stat-sub">macro avg across classes</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-label">Recall (avg)</div>
+      <div class="stat-value">99.48%</div>
+      <div class="stat-sub">macro avg across classes</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-label">Inference time</div>
+      <div class="stat-value">~220ms</div>
+      <div class="stat-sub">target was &lt;2s — comfortably met</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Validation accuracy over training</h2>
+    <p class="card-sub">Epoch 1–15: classifier head only (base frozen) · Epoch 16–20: top layers fine-tuned</p>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--series-train)"></span>Train</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--series-val)"></span>Validation</div>
+    </div>
+    <div class="chart-wrap">
+      <svg id="acc-chart" width="100%" viewBox="0 0 900 300" style="overflow: visible;"></svg>
+      <div class="tooltip" id="acc-tooltip"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Loss over training</h2>
+    <p class="card-sub">Cross-entropy loss, same phase split as above</p>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--series-train)"></span>Train</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--series-val)"></span>Validation</div>
+    </div>
+    <div class="chart-wrap">
+      <svg id="loss-chart" width="100%" viewBox="0 0 900 300" style="overflow: visible;"></svg>
+      <div class="tooltip" id="loss-tooltip"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Confusion matrix</h2>
+    <p class="card-sub">Test set, rows = actual, columns = predicted</p>
+    <table class="cm">
+      <tr>
+        <th></th>
+        <th></th>
+        <th colspan="2">Predicted</th>
+      </tr>
+      <tr>
+        <th></th>
+        <th></th>
+        <th>def_front (fail)</th>
+        <th>ok_front (pass)</th>
+      </tr>
+      <tr>
+        <th rowspan="2" style="writing-mode: vertical-rl; transform: rotate(180deg);">Actual</th>
+        <td class="axis-name">def_front (fail)</td>
+        <td class="cell" id="cm-00">450</td>
+        <td class="cell" id="cm-01">3</td>
+      </tr>
+      <tr>
+        <td class="axis-name">ok_front (pass)</td>
+        <td class="cell" id="cm-10">1</td>
+        <td class="cell" id="cm-11">261</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Code &amp; artifacts</h2>
+    <p class="card-sub">All under <code>module1_cv_defect/</code></p>
+    <div class="files">
+      <div><code>src/dataset.py</code> — ImageFolder loading + train/eval transforms</div>
+      <div><code>src/model.py</code> — MobileNetV2 head, freeze/unfreeze logic</div>
+      <div><code>src/train.py</code> — 2-phase training loop (this run's source)</div>
+      <div><code>src/evaluate.py</code> — precision/recall/confusion matrix</div>
+      <div><code>src/infer.py</code> — single-image JSON prediction + ONNX export</div>
+      <div><code>models/casting_mobilenetv2.pt</code> — trained checkpoint (this run)</div>
+      <div><code>models/casting_mobilenetv2.onnx</code> — exported ONNX model</div>
+      <div><code>models/training_history.json</code> — raw per-epoch metrics behind the charts above</div>
+    </div>
+  </div>
+
+  <p class="caveat">
+    99.44% reflects this dataset's clean, well-separated visual defects (consistent with published
+    results on this exact dataset) — it is a proof-of-concept result on public data, not a validated
+    real-world shop-floor accuracy figure.
+  </p>
+</div>
+
+<script>
+(function() {
+  const history = [
+    {"phase":"head","epoch":1,"train_loss":0.3228233309509563,"train_acc":0.8700437207899895,"val_loss":0.2068813120568549,"val_acc":0.9342657342657342},
+    {"phase":"head","epoch":2,"train_loss":0.20829422761372055,"train_acc":0.9217548620533695,"val_loss":0.18014927071916473,"val_acc":0.9412587412587412},
+    {"phase":"head","epoch":3,"train_loss":0.17804119766621176,"train_acc":0.9326096788783356,"val_loss":0.16793472957048383,"val_acc":0.9356643356643357},
+    {"phase":"head","epoch":4,"train_loss":0.1666605000717058,"train_acc":0.9362279511533242,"val_loss":0.16752023623956666,"val_acc":0.9342657342657342},
+    {"phase":"head","epoch":5,"train_loss":0.1620131086596856,"train_acc":0.9377355646012362,"val_loss":0.28199768760404387,"val_acc":0.8797202797202798},
+    {"phase":"head","epoch":6,"train_loss":0.15030921726731464,"train_acc":0.9402985074626866,"val_loss":0.14900854321626517,"val_acc":0.9426573426573427},
+    {"phase":"head","epoch":7,"train_loss":0.14844179745400166,"train_acc":0.9434644957033017,"val_loss":0.1292947423416418,"val_acc":0.965034965034965},
+    {"phase":"head","epoch":8,"train_loss":0.14315439717776451,"train_acc":0.9431629730137193,"val_loss":0.14538192798520302,"val_acc":0.9426573426573427},
+    {"phase":"head","epoch":9,"train_loss":0.1502434314851582,"train_acc":0.9439167797376753,"val_loss":0.1740383943034844,"val_acc":0.9286713286713286},
+    {"phase":"head","epoch":10,"train_loss":0.14102716601292112,"train_acc":0.9485903814262023,"val_loss":0.1155815980546958,"val_acc":0.9594405594405594},
+    {"phase":"head","epoch":11,"train_loss":0.13955737735986817,"train_acc":0.9439167797376753,"val_loss":0.10279577763659971,"val_acc":0.9692307692307692},
+    {"phase":"head","epoch":12,"train_loss":0.13885803160393972,"train_acc":0.9457259158751696,"val_loss":0.10704013093576564,"val_acc":0.9608391608391609},
+    {"phase":"head","epoch":13,"train_loss":0.13462025241202652,"train_acc":0.9478365747022464,"val_loss":0.12278112836598933,"val_acc":0.951048951048951},
+    {"phase":"head","epoch":14,"train_loss":0.1467646933192314,"train_acc":0.9436152570480929,"val_loss":0.10505309010614881,"val_acc":0.9664335664335665},
+    {"phase":"head","epoch":15,"train_loss":0.13400359434921888,"train_acc":0.9487411427709935,"val_loss":0.1251425273247532,"val_acc":0.9538461538461539},
+    {"phase":"fine_tune","epoch":1,"train_loss":0.07806426774114808,"train_acc":0.9728629579375848,"val_loss":0.037022154457815044,"val_acc":0.9916083916083916},
+    {"phase":"fine_tune","epoch":2,"train_loss":0.03915294905843377,"train_acc":0.9879390924167044,"val_loss":0.02021874097058667,"val_acc":0.993006993006993},
+    {"phase":"fine_tune","epoch":3,"train_loss":0.03384784232913778,"train_acc":0.9897482285541988,"val_loss":0.020935696489796356,"val_acc":0.993006993006993},
+    {"phase":"fine_tune","epoch":4,"train_loss":0.02354351207293816,"train_acc":0.9929142167948138,"val_loss":0.020749053955945135,"val_acc":0.993006993006993},
+    {"phase":"fine_tune","epoch":5,"train_loss":0.028307261842309438,"train_acc":0.9923111714156491,"val_loss":0.015781714373140576,"val_acc":0.9944055944055944}
+  ];
+
+  // Build combined x-axis: head epochs 1-15, then fine_tune epochs 16-20
+  const points = history.map((d, i) => ({
+    x: i + 1,
+    phase: d.phase,
+    phaseEpoch: d.epoch,
+    train_acc: d.train_acc,
+    val_acc: d.val_acc,
+    train_loss: d.train_loss,
+    val_loss: d.val_loss,
+  }));
+  const phaseBoundary = points.filter(p => p.phase === 'head').length; // 15
+
+  function buildChart(svgId, tooltipId, key1, key2, opts) {
+    const svg = document.getElementById(svgId);
+    const tooltip = document.getElementById(tooltipId);
+    const W = 900, H = 300;
+    const margin = { top: 16, right: 20, bottom: 32, left: 44 };
+    const plotW = W - margin.left - margin.right;
+    const plotH = H - margin.top - margin.bottom;
+
+    const xMin = 1, xMax = points.length;
+    const allVals = points.flatMap(p => [p[key1], p[key2]]);
+    let yMin = opts.yMin !== undefined ? opts.yMin : Math.min(...allVals);
+    let yMax = opts.yMax !== undefined ? opts.yMax : Math.max(...allVals);
+    const yPad = (yMax - yMin) * 0.08;
+    yMin = Math.max(opts.floor !== undefined ? opts.floor : -Infinity, yMin - yPad);
+    yMax = yMax + yPad;
+
+    const xScale = x => margin.left + ((x - xMin) / (xMax - xMin)) * plotW;
+    const yScale = y => margin.top + plotH - ((y - yMin) / (yMax - yMin)) * plotH;
+
+    let svgContent = '';
+
+    // gridlines (horizontal, 4 steps) + y-axis labels
+    const ySteps = 4;
+    for (let i = 0; i <= ySteps; i++) {
+      const val = yMin + (i / ySteps) * (yMax - yMin);
+      const y = yScale(val);
+      svgContent += `<line class="gridline" x1="${margin.left}" y1="${y}" x2="${margin.left + plotW}" y2="${y}" />`;
+      svgContent += `<text class="axis-label" x="${margin.left - 8}" y="${y + 4}" text-anchor="end">${opts.fmt(val)}</text>`;
+    }
+
+    // baseline (x-axis)
+    svgContent += `<line class="baseline" x1="${margin.left}" y1="${margin.top + plotH}" x2="${margin.left + plotW}" y2="${margin.top + plotH}" />`;
+
+    // x-axis ticks at every other epoch
+    for (let x = xMin; x <= xMax; x += 2) {
+      svgContent += `<text class="axis-label" x="${xScale(x)}" y="${margin.top + plotH + 18}" text-anchor="middle">${x}</text>`;
+    }
+    svgContent += `<text class="axis-label" x="${margin.left + plotW / 2}" y="${H - 2}" text-anchor="middle" style="font-size:11px;">Epoch (combined across both phases)</text>`;
+
+    // phase divider
+    const boundaryX = xScale(phaseBoundary + 0.5);
+    svgContent += `<line class="phase-divider" x1="${boundaryX}" y1="${margin.top}" x2="${boundaryX}" y2="${margin.top + plotH}" stroke-dasharray="0" />`;
+    svgContent += `<text class="phase-label" x="${boundaryX + 6}" y="${margin.top + 12}">fine-tune starts</text>`;
+
+    // lines
+    function pathFor(key) {
+      return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${xScale(p.x)} ${yScale(p[key])}`).join(' ');
+    }
+    svgContent += `<path d="${pathFor(key1)}" fill="none" stroke="var(--series-train)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />`;
+    svgContent += `<path d="${pathFor(key2)}" fill="none" stroke="var(--series-val)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />`;
+
+    // end markers with surface ring
+    const last = points[points.length - 1];
+    [[key1, 'var(--series-train)'], [key2, 'var(--series-val)']].forEach(([key, color]) => {
+      svgContent += `<circle cx="${xScale(last.x)}" cy="${yScale(last[key])}" r="5" fill="${color}" stroke="var(--surface-1)" stroke-width="2" />`;
+    });
+    svgContent += `<text class="axis-label" x="${xScale(last.x) + 8}" y="${yScale(last[key1]) + 4}" style="fill:var(--text-primary); font-weight:600;">${opts.fmt(last[key1])}</text>`;
+    svgContent += `<text class="axis-label" x="${xScale(last.x) + 8}" y="${yScale(last[key2]) - 8}" style="fill:var(--text-primary); font-weight:600;">${opts.fmt(last[key2])}</text>`;
+
+    // hover hit targets
+    points.forEach(p => {
+      svgContent += `<circle class="hover-target" data-idx="${p.x}" cx="${xScale(p.x)}" cy="${margin.top + plotH / 2}" r="${plotW / points.length / 2}" fill="transparent" style="cursor:pointer;" />`;
+    });
+
+    svg.innerHTML = svgContent;
+
+    // crosshair line (added after, so it's on top and toggled)
+    const crosshair = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    crosshair.setAttribute('class', 'gridline');
+    crosshair.setAttribute('y1', margin.top);
+    crosshair.setAttribute('y2', margin.top + plotH);
+    crosshair.setAttribute('stroke', 'var(--text-muted)');
+    crosshair.style.display = 'none';
+    svg.appendChild(crosshair);
+
+    svg.querySelectorAll('.hover-target').forEach(el => {
+      el.addEventListener('mouseenter', (e) => {
+        const idx = parseInt(el.getAttribute('data-idx'), 10);
+        const p = points[idx - 1];
+        crosshair.setAttribute('x1', xScale(p.x));
+        crosshair.setAttribute('x2', xScale(p.x));
+        crosshair.style.display = 'block';
+
+        const phaseName = p.phase === 'head' ? 'Head training' : 'Fine-tuning';
+        tooltip.innerHTML = `
+          <div class="t-title">${phaseName} · epoch ${p.phaseEpoch}</div>
+          <div class="t-row"><span>Train</span><span class="v">${opts.fmt(p[key1])}</span></div>
+          <div class="t-row"><span>Validation</span><span class="v">${opts.fmt(p[key2])}</span></div>
+        `;
+        tooltip.style.display = 'block';
+        const rect = svg.getBoundingClientRect();
+        const wrapRect = svg.parentElement.getBoundingClientRect();
+        const px = (xScale(p.x) / W) * rect.width;
+        tooltip.style.left = Math.min(px + 12, wrapRect.width - 150) + 'px';
+        tooltip.style.top = '8px';
+      });
+      el.addEventListener('mouseleave', () => {
+        crosshair.style.display = 'none';
+        tooltip.style.display = 'none';
+      });
+    });
+  }
+
+  buildChart('acc-chart', 'acc-tooltip', 'train_acc', 'val_acc', {
+    fmt: v => (v * 100).toFixed(1) + '%',
+    yMin: 0.85, yMax: 1.0, floor: 0,
+  });
+  buildChart('loss-chart', 'loss-tooltip', 'train_loss', 'val_loss', {
+    fmt: v => v.toFixed(3),
+    floor: 0,
+  });
+})();
+</script>
+</body>
+</html>

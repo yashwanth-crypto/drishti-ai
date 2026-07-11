@@ -1,0 +1,7 @@
+2026-07-09 18:09  MobileNetV2 (proper split): test_acc=99.39%±0.24 (seeds [1, 2, 42])
+2026-07-09 18:48  MobileNetV2 (proper split): test_acc=99.39%±0.24 (seeds [1, 2, 42])
+2026-07-09 18:48  ResNet-50 (baseline): test_acc=99.72%±0.00 (seeds [42])
+2026-07-09 18:48  SimpleCNN from scratch (baseline): test_acc=99.44%±0.00 (seeds [42])
+2026-07-09 20:44  MobileNetV2 (proper split): test_acc=99.39%±0.24 (seeds [1, 2, 42])
+2026-07-09 20:44  ResNet-50 (baseline): test_acc=99.67%±0.07 (seeds [1, 2, 42])
+2026-07-09 20:44  SimpleCNN from scratch (baseline): test_acc=99.35%±0.07 (seeds [1, 2, 42])

@@ -1,0 +1,18 @@
+{
+  "burr": {
+    "hi": "बर्र (धातु का उभरा हुआ नुकीला किनारा)",
+    "note": "no single-word Hindi equivalent in common shop-floor use; kept as transliterated term with a descriptive gloss"
+  },
+  "flank_wear": {
+    "hi": "फ्लैंक वियर (टूल के किनारे की घिसाई)",
+    "note": "CNC-specific term; workers are more likely to recognize the English term than a translated one"
+  },
+  "tolerance": {
+    "hi": "टॉलरेंस (माप की स्वीकार्य सीमा)",
+    "note": "dimensional tolerance is out of scope for Module 1's image-classification approach; kept here for future modules that surface measurement data"
+  },
+  "tool_wear": {
+    "hi": "टूल वियर (औज़ार की घिसाई)",
+    "note": "used by Module 3 predictive-maintenance alerts"
+  }
+}

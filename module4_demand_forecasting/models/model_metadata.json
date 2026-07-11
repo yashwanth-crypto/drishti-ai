@@ -1,0 +1,70 @@
+{
+  "feature_cols": [
+    "lag_1",
+    "lag_2",
+    "lag_3",
+    "lag_4",
+    "lag_8",
+    "lag_12",
+    "lag_52",
+    "rolling_mean_4",
+    "rolling_std_4",
+    "rolling_mean_8",
+    "rolling_mean_13",
+    "ewma_4",
+    "trend_1",
+    "trend_4",
+    "month",
+    "weekofyear",
+    "woy_sin",
+    "woy_cos"
+  ],
+  "target": "Order_Demand",
+  "categories": [
+    "Category_001",
+    "Category_003",
+    "Category_004",
+    "Category_005",
+    "Category_006",
+    "Category_007",
+    "Category_008",
+    "Category_009",
+    "Category_010",
+    "Category_011",
+    "Category_012",
+    "Category_013",
+    "Category_015",
+    "Category_017",
+    "Category_018",
+    "Category_019",
+    "Category_020",
+    "Category_021",
+    "Category_022",
+    "Category_023",
+    "Category_024",
+    "Category_026",
+    "Category_028",
+    "Category_029",
+    "Category_030",
+    "Category_031",
+    "Category_032",
+    "Category_033"
+  ],
+  "cutoff_date": "2016-01-11",
+  "test_weeks": 52,
+  "metrics": {
+    "rmse": 722263.4730092053,
+    "mae": 142354.42534267574,
+    "wape_pct": 19.73663630947148,
+    "r2": 0.9437776383173522,
+    "interval_coverage_pct": 74.19596110695588
+  },
+  "cv": {
+    "folds": [
+      22.7,
+      17.4,
+      21.7
+    ],
+    "mean_wape_pct": 20.599716284562472
+  }
+}
