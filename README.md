@@ -4,7 +4,7 @@ An offline, four-part AI system for small manufacturers (MSMEs): defect detectio
 a Hindi shop-floor alert, tool-wear prediction, and demand forecasting — all running
 on an ordinary CPU with no cloud, reporting to one dashboard.
 
-**Live dashboard:** https://<your-username>.github.io/<repo-name>/
+**Live dashboard:** https://yashwanth-crypto.github.io/drishti-ai/
 *(replace with your URL once GitHub Pages is enabled — see below)*
 
 ---
