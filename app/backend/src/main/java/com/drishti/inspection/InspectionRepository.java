@@ -5,6 +5,7 @@ import java.util.List;
 
 public interface InspectionRepository extends JpaRepository<Inspection, Long> {
     List<Inspection> findAllByOrderByTimestampDesc();
+    List<Inspection> findByPartId(String partId);
     List<Inspection> findByPassFailOrderByTimestampDesc(String passFail);
     long countByPassFail(String passFail);
 }
