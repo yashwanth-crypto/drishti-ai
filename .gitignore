@@ -56,3 +56,6 @@ demo_images/
 
 # Local credentials — never commit
 app/secrets.local.json
+
+# Runtime logs from start-app.ps1
+.run/
