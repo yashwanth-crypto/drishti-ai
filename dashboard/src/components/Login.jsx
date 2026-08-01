@@ -77,7 +77,6 @@ export default function Login({ onSignedIn }) {
         </button>
 
         <p className="login-hint">
-          Development accounts: <code>owner</code> / <code>operator</code>.
           An operator can inspect parts and read everything; only an owner can
           change thresholds or recompute forecasts.
         </p>
