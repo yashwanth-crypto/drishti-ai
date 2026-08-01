@@ -7,18 +7,19 @@ wraps the four validated model modules so the numbers can't drift from the paper
 ```
 React dashboard ──► Spring Boot :8080 ──► FastAPI :8000 ──► module1/3/4 models
                           │
-                          └──► PostgreSQL :5433
+                          └──► PostgreSQL :5432
 ```
 
 ## Running it
 
-Three processes. Start them in this order.
-
-**1. PostgreSQL** — a user-owned instance on port 5433 (no service, no admin needed):
+**1. PostgreSQL** runs as a Windows service (`postgresql-x64-16`) on the default
+port 5432 and starts with the machine — nothing to do. To check it:
 
 ```bash
-"/c/Program Files/PostgreSQL/16/bin/pg_ctl" -D C:/devtools/pgdata -o "-p 5433" -l C:/devtools/pg.log start
+pg_isready -h localhost -p 5432
 ```
+
+Then start the two application processes:
 
 **2. Inference service** — loads the vision model on GPU and both XGBoost models at startup:
 
