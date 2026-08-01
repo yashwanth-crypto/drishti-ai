@@ -1,16 +1,37 @@
-# React + Vite
+# Drishti-AI dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + Vite front end for the Drishti-AI platform. It reads live data from the
+Spring Boot backend (see [`../app`](../app)) — inspections, KPIs, tool wear and
+demand forecasts all come from the API, not a checked-in JSON file.
 
-Currently, two official plugins are available:
+## Running
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The backend (`:8080`) and inference service (`:8000`) need to be up first — see
+[`../app/README.md`](../app/README.md). Then:
 
-## React Compiler
+```bash
+npm install
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Vite proxies `/api` to `http://localhost:8080`, so the browser stays same-origin
+and never needs CORS. Point it elsewhere with `VITE_API_BASE` if you need to.
 
-## Expanding the Oxlint configuration
+## Tabs
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- **Overview** — headline KPIs, recent inspections, tool status
+- **Inspect a Part** — drop in a casting photo and get a live pass/fail plus the
+  Hindi operator alert. Try any file from `module1_cv_defect/data/casting/test/`.
+- **Quality Inspection** — the full inspection log with stored images
+- **Predictive Maintenance** — per-tool RUL charts
+- **Demand Forecasting** — per-category history and forecast with P10–P90 bands
+- **Benchmarks** / **ROI Calculator**
+
+## What is still static
+
+`src/data/events.json` is no longer the data source, but it is still imported for
+the **published model metrics** — benchmark tables, held-out WAPE, Module 1 test
+accuracy, cross-validation figures. Those are measured results from the paper
+rather than runtime state, so they belong in the repo rather than the database.
+Everything else on screen is fetched. See `src/api.js`, which also adapts the
+API's camelCase responses into the field names the components read.

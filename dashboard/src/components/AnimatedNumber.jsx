@@ -27,7 +27,16 @@ export default function AnimatedNumber({ value, format = (v) => Math.round(v).to
       if (t < 1) raf.current = requestAnimationFrame(tick)
     }
     raf.current = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf.current)
+
+    // rAF is paused in a background tab, which would otherwise leave every
+    // headline number frozen at 0 until the tab is focused. Snap to the real
+    // value once the animation window has passed; a no-op if it already ran.
+    const settle = setTimeout(() => setDisplay(value), duration + 50)
+
+    return () => {
+      cancelAnimationFrame(raf.current)
+      clearTimeout(settle)
+    }
   }, [value, duration])
 
   return <>{format(display)}</>

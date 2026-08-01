@@ -65,11 +65,11 @@ export default function InspectionLog({ inspections }) {
           <span>Alert (Hindi)</span>
         </div>
         {sorted.map((insp) => (
-          <div className="insp-row" key={insp.part_id}>
+          <div className="insp-row" key={insp.id ?? insp.part_id}>
             <span className="insp-time">{formatTime(insp.timestamp)}</span>
             <span className="insp-thumb">
-              {insp.thumb_b64 ? (
-                <img src={`data:image/jpeg;base64,${insp.thumb_b64}`} alt={insp.part_id} />
+              {insp.image_url ? (
+                <img src={insp.image_url} alt={insp.part_id} loading="lazy" />
               ) : (
                 <span className="insp-thumb-placeholder" />
               )}

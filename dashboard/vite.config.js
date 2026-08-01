@@ -8,4 +8,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   base: './',
   plugins: [react()],
+  // Same-origin /api during development, so the browser never needs CORS and
+  // the built app can be served from the backend unchanged.
+  server: {
+    proxy: {
+      '/api': { target: 'http://localhost:8080', changeOrigin: true },
+    },
+  },
 })
