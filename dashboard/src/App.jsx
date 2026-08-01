@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { loadDashboard } from './api.js'
+import { getSession, logout, onSessionChange } from './auth.js'
+import Login from './components/Login.jsx'
 import Overview from './components/Overview.jsx'
 import InspectionLog from './components/InspectionLog.jsx'
 import LiveInspect from './components/LiveInspect.jsx'
@@ -7,8 +9,9 @@ import MaintenancePanel from './components/MaintenancePanel.jsx'
 import InventoryForecast from './components/InventoryForecast.jsx'
 import Benchmarks from './components/Benchmarks.jsx'
 import RoiCalculator from './components/RoiCalculator.jsx'
+import SettingsPanel from './components/SettingsPanel.jsx'
 import {
-  IconOverview, IconScan, IconWrench, IconTrend, IconBars, IconCalculator,
+  IconOverview, IconScan, IconWrench, IconTrend, IconBars, IconCalculator, IconTarget,
 } from './components/Icons.jsx'
 import './App.css'
 
@@ -20,6 +23,8 @@ const TABS = [
   { id: 'forecast', label: 'Demand Forecasting', icon: IconTrend, title: 'Demand Forecasting', sub: 'Weekly per-category demand with intervals (Module 4)' },
   { id: 'benchmarks', label: 'Benchmarks', icon: IconBars, title: 'Model Benchmarks', sub: 'Every model measured against baselines' },
   { id: 'roi', label: 'ROI Calculator', icon: IconCalculator, title: 'ROI Calculator', sub: 'Transparent, editable savings projection' },
+  // Visible to everyone, but only an owner can change anything here.
+  { id: 'settings', label: 'Settings', icon: IconTarget, title: 'Settings', sub: 'Detection and maintenance thresholds' },
 ]
 
 function Logo() {
@@ -43,13 +48,24 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('overview')
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
+  const [session, setSession] = useState(getSession)
   const active = TABS.find((t) => t.id === activeTab)
 
   const refresh = useCallback(() => {
+    setError(null)
     loadDashboard().then(setData).catch((err) => setError(err.message))
   }, [])
 
-  useEffect(refresh, [refresh])
+  // An expired token clears the session from inside api.js, which drops the UI
+  // back to the login screen wherever the user happened to be.
+  useEffect(() => onSessionChange(setSession), [])
+
+  useEffect(() => {
+    if (session) refresh()
+    else setData(null)
+  }, [session, refresh])
+
+  if (!session) return <Login onSignedIn={() => setSession(getSession())} />
 
   return (
     <div className="app-shell">
@@ -78,6 +94,14 @@ export default function App() {
           })}
         </nav>
 
+        <div className="sidebar-user">
+          <div className="sidebar-user-id">
+            <span className="sidebar-username">{session.username}</span>
+            <span className={`role-chip ${session.role === 'OWNER' ? 'owner' : ''}`}>{session.role}</span>
+          </div>
+          <button className="signout-btn" onClick={logout}>Sign out</button>
+        </div>
+
         <div className="sidebar-foot">
           <span className="live-dot" />
           <span>Proof-of-concept · real model output on public datasets</span>
@@ -99,11 +123,11 @@ export default function App() {
         <main className="app-content">
           {error && (
             <div className="card">
-              <h2>Can&rsquo;t reach the backend</h2>
+              <h2>Something went wrong</h2>
               <p className="card-sub">{error}</p>
               <p className="card-sub">
-                Start it with <code>mvn spring-boot:run</code> in <code>app/backend</code>, and make sure
-                the inference service is up on port 8000.
+                If the backend isn&rsquo;t running, start it with <code>mvn spring-boot:run</code> in{' '}
+                <code>app/backend</code>, and make sure the inference service is up on port 8000.
               </p>
             </div>
           )}
@@ -118,6 +142,7 @@ export default function App() {
               {activeTab === 'forecast' && <InventoryForecast forecasting={data.forecasting} />}
               {activeTab === 'benchmarks' && <Benchmarks benchmarks={data.benchmarks} />}
               {activeTab === 'roi' && <RoiCalculator />}
+              {activeTab === 'settings' && <SettingsPanel />}
             </>
           )}
         </main>

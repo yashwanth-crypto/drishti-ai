@@ -207,10 +207,14 @@ All under `/api`. JWT required except `/auth/*`.
 - [x] `/kpis` (aggregate from `inspections`).
 - [x] Module 2 ported to Java (`alert/AlertService`), reading the same templates file.
 
-### Phase 4 — Auth  *(0.5–1 wk)*
-- [ ] JWT login/register; password hashing (BCrypt).
-- [ ] Roles: `OPERATOR` (inspect + alerts), `OWNER` (all + settings).
-- [ ] Secure endpoints.
+### Phase 4 — Auth  *(0.5–1 wk)* — ✅ done
+- [x] JWT login/register, BCrypt hashing, 12h token TTL.
+- [x] Roles: `OPERATOR` (inspect + read), `OWNER` (all + settings/recompute).
+- [x] Every `/api` route authenticated except `/auth/login` and `/auth/register`.
+      401 (not signed in) and 403 (wrong role) are distinguished, so the UI only
+      forces re-login on a genuinely expired token.
+- [x] `owner`/`operator` accounts seeded on first run, with a startup warning and
+      a `SEED_USERS=false` switch.
 
 ### Phase 5 — Connect the frontend  *(1 wk)* — ✅ mostly done
 - [x] Replaced `import events.json` with `fetch()` calls (`dashboard/src/api.js`),
@@ -218,7 +222,10 @@ All under `/api`. JWT required except `/auth/*`.
       components read — so no component rewrite was needed.
 - [x] **Image-upload screen** (§9.1) — drag-drop → live model → Hindi alert.
 - [x] Vite dev proxy `/api` → `:8080`, so the browser is same-origin.
-- [ ] Login screen + role-aware navigation — waiting on Phase 4.
+- [x] Login screen, session persisted across reloads, sign-out, role chip in the
+      sidebar, and a Settings tab whose sliders are read-only for an operator.
+      Images behind the token are fetched as blobs (`AuthImage`), since a plain
+      `<img src>` can't send an Authorization header.
 
 > Published model metrics (benchmarks, WAPE, M1 accuracy) still come from
 > `events.json`. They're measured paper results, not runtime state.

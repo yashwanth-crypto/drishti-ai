@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import StatusBadge from './StatusBadge.jsx'
+import AuthImage from './AuthImage.jsx'
 import { IconScan } from './Icons.jsx'
 
 function formatTime(iso) {
@@ -68,11 +69,7 @@ export default function InspectionLog({ inspections }) {
           <div className="insp-row" key={insp.id ?? insp.part_id}>
             <span className="insp-time">{formatTime(insp.timestamp)}</span>
             <span className="insp-thumb">
-              {insp.image_url ? (
-                <img src={insp.image_url} alt={insp.part_id} loading="lazy" />
-              ) : (
-                <span className="insp-thumb-placeholder" />
-              )}
+              <AuthImage src={insp.image_url} alt={insp.part_id} />
             </span>
             <span className="insp-part">{insp.part_id}</span>
             <StatusBadge status={insp.pass_fail} label={insp.pass_fail.toUpperCase()} />
