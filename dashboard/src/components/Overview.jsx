@@ -22,7 +22,10 @@ export default function Overview({ data }) {
             <span className="stat-icon"><IconLayers size={17} /></span>
           </div>
           <div className="stat-value"><AnimatedNumber value={kpis.total_inspections} /></div>
-          <div className="stat-sub">{kpis.fail_count} flagged, {kpis.pass_count} passed</div>
+          <div className="stat-sub">
+            {kpis.fail_count} flagged, {kpis.pass_count} passed
+            {kpis.review_count > 0 && `, ${kpis.review_count} to review`}
+          </div>
         </div>
         <div className="stat-tile">
           <div className="stat-tophead">
@@ -74,7 +77,10 @@ export default function Overview({ data }) {
             <div className="overview-row" key={insp.part_id}>
               <span className="overview-time">{formatTime(insp.timestamp)}</span>
               <span className="overview-part">{insp.part_id}</span>
-              <StatusBadge status={insp.pass_fail} label={insp.pass_fail.toUpperCase()} />
+              <StatusBadge
+                status={insp.pass_fail}
+                label={insp.pass_fail === 'review' ? 'REVIEW' : insp.pass_fail.toUpperCase()}
+              />
               <span className="overview-conf">{(insp.confidence * 100).toFixed(1)}%</span>
               <span className="overview-alert">{insp.alert_hi}</span>
             </div>

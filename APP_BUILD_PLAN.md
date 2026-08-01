@@ -249,9 +249,13 @@ A screen where you drag in a part photo → get pass/fail + confidence + Hindi a
 - Frontend: file input → `POST /inspections` (multipart) → show result card.
 - Backend: already covered by the `/inspections` endpoint.
 
-### 9.2 Adjustable defect threshold
+### 9.2 Adjustable defect threshold — ✅ done
 Let the owner tune how strict the pass/fail cutoff is (trade more false alarms for fewer missed defects). Directly addresses the project's own limitation **L4** (safety-critical false negatives).
-- Store in `settings`; apply in the inspection service before deciding pass/fail.
+- [x] Stored in `settings`, applied in `InspectionService` before deciding the verdict.
+- [x] Third verdict `review`: model says good but below the bar, so a human decides.
+      A defective call always fails regardless — the threshold only tightens.
+- [x] Its own `needs_review` Hindi template (additive; no existing message changed).
+- [x] Surfaced in the dashboard: amber badge, "Needs review" filter, KPI count.
 
 ### 9.3 Operator feedback loop  ⭐ the only real moat
 When an operator marks a prediction wrong, store the image + correction (`PATCH /inspections/{id}/feedback`). Over a pilot this becomes **proprietary data no competitor has** — and later, retraining fuel. Build the *capture* now; retraining comes later.
