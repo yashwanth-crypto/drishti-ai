@@ -11,7 +11,12 @@ public class Settings {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Minimum confidence for a "fail" call to stand; below this the part is flagged for review. */
+    /**
+     * Minimum confidence required to accept a part as good. A part the model
+     * calls good with less confidence than this is sent for human review rather
+     * than passed — the lever against missed defects (limitation L4). Raising it
+     * means more review work and fewer defects slipping through.
+     */
     private Double defectThreshold = 0.5;
 
     /** Predicted RUL fraction below which a tool raises a maintenance alert. */

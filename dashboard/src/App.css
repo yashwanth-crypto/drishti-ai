@@ -548,6 +548,7 @@
 .insp-summary strong { color: var(--text-primary); font-variant-numeric: tabular-nums; }
 .good-text strong { color: var(--good); }
 .crit-text strong { color: var(--critical); }
+.warn-text strong { color: var(--warning); }
 
 .dot-sep {
   width: 3px;

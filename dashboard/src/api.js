@@ -118,6 +118,7 @@ export async function loadDashboard() {
       total_inspections: kpis.totalInspections,
       pass_count: kpis.passCount,
       fail_count: kpis.failCount,
+      review_count: kpis.reviewCount,
       pass_rate: kpis.passRate,
       avg_inference_ms: kpis.avgInferenceMs,
       tools_monitored: tools.length,

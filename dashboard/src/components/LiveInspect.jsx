@@ -102,9 +102,14 @@ export default function LiveInspect({ onInspected }) {
               <h2>{result.part_id}</h2>
               <p className="card-sub" style={{ marginBottom: 0 }}>
                 Classified as <strong>{result.defect_type}</strong> in {result.inference_ms.toFixed(0)}ms
+                {result.pass_fail === 'review' &&
+                  ' — below the confidence threshold, so it needs a human check'}
               </p>
             </div>
-            <StatusBadge status={result.pass_fail} label={result.pass_fail.toUpperCase()} />
+            <StatusBadge
+              status={result.pass_fail}
+              label={result.pass_fail === 'review' ? 'REVIEW' : result.pass_fail.toUpperCase()}
+            />
           </div>
 
           <div className="inspect-result">

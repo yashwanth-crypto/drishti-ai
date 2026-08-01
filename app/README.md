@@ -44,6 +44,22 @@ npm run dev --prefix dashboard
 Open http://localhost:5173 and use the **Inspect a Part** tab to run a real image
 through the model.
 
+## The defect threshold
+
+An inspection can end in three states, not two:
+
+| Verdict | When |
+|---|---|
+| `fail` | the model calls the part defective — always, whatever the threshold |
+| `pass` | the model calls it good **and** is at least as confident as the threshold |
+| `review` | the model calls it good but is less confident than that — a human decides |
+
+So the threshold only ever makes the system stricter. Raising it converts
+borderline passes into review work rather than letting them through, which is the
+lever against limitation **L4** (a missed defect costs more than a false alarm).
+Only an OWNER can move it, and a `review` part gets its own Hindi alert telling
+the operator to set it aside.
+
 ## Signing in
 
 Two accounts are created on first run:
@@ -128,9 +144,6 @@ checkpoint is the seed-2 run at 99.30%.
   (271 weeks) instead. That file is gitignored; rebuild it with
   `python src/feature_extraction.py` after downloading the raw demand dataset.
   Verified to reproduce the prototype's published figures exactly.
-- **The defect threshold is stored but not yet applied.** An owner can set it and
-  it persists, but the inspection service doesn't consult it when deciding
-  pass/fail. Wiring that in is what actually delivers §9.2.
 - **No operator feedback UI.** `PATCH /api/inspections/{id}/feedback` works, but
   nothing in the dashboard calls it yet.
 - **Not containerized.** Docker Compose needs WSL2 on this machine.

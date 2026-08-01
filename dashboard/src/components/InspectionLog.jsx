@@ -12,13 +12,15 @@ function formatTime(iso) {
 const FILTERS = [
   { id: 'all', label: 'All' },
   { id: 'fail', label: 'Failed' },
+  { id: 'review', label: 'Needs review' },
   { id: 'pass', label: 'Passed' },
 ]
 
 export default function InspectionLog({ inspections }) {
   const [filter, setFilter] = useState('all')
   const passCount = inspections.filter((i) => i.pass_fail === 'pass').length
-  const failCount = inspections.length - passCount
+  const reviewCount = inspections.filter((i) => i.pass_fail === 'review').length
+  const failCount = inspections.length - passCount - reviewCount
   const avgConf = inspections.reduce((a, i) => a + i.confidence, 0) / inspections.length
 
   const sorted = [...inspections].reverse()
@@ -39,6 +41,12 @@ export default function InspectionLog({ inspections }) {
           <span className="good-text"><strong>{passCount}</strong> passed</span>
           <span className="dot-sep" />
           <span className="crit-text"><strong>{failCount}</strong> flagged</span>
+          {reviewCount > 0 && (
+            <>
+              <span className="dot-sep" />
+              <span className="warn-text"><strong>{reviewCount}</strong> need review</span>
+            </>
+          )}
           <span className="dot-sep" />
           <span><strong>{(avgConf * 100).toFixed(1)}%</strong> avg confidence</span>
         </div>
@@ -72,7 +80,10 @@ export default function InspectionLog({ inspections }) {
               <AuthImage src={insp.image_url} alt={insp.part_id} />
             </span>
             <span className="insp-part">{insp.part_id}</span>
-            <StatusBadge status={insp.pass_fail} label={insp.pass_fail.toUpperCase()} />
+            <StatusBadge
+              status={insp.pass_fail}
+              label={insp.pass_fail === 'review' ? 'REVIEW' : insp.pass_fail.toUpperCase()}
+            />
             <span className="insp-conf">{(insp.confidence * 100).toFixed(1)}%</span>
             <span className="insp-latency">{insp.inference_ms.toFixed(0)}ms</span>
             <span className="insp-alert">{insp.alert_hi}</span>
