@@ -57,6 +57,20 @@ export default function Overview({ data }) {
           </div>
           <div className="stat-sub">tools monitored, wear-based RUL model</div>
         </div>
+        {kpis.feedback_count > 0 && (
+          <div className="stat-tile">
+            <div className="stat-tophead">
+              <span className="stat-label">Operator agreement</span>
+              <span className="stat-icon"><IconTarget size={17} /></span>
+            </div>
+            <div className="stat-value">
+              <AnimatedNumber value={kpis.agreement_rate * 100} format={(v) => `${v.toFixed(0)}%`} />
+            </div>
+            <div className="stat-sub">
+              on {kpis.feedback_count} part{kpis.feedback_count === 1 ? '' : 's'} an operator checked
+            </div>
+          </div>
+        )}
         <div className="stat-tile">
           <div className="stat-tophead">
             <span className="stat-label">Demand forecast WAPE</span>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import StatusBadge from './StatusBadge.jsx'
 import AuthImage from './AuthImage.jsx'
+import FeedbackControl from './FeedbackControl.jsx'
 import { IconScan } from './Icons.jsx'
 
 function formatTime(iso) {
@@ -16,7 +17,7 @@ const FILTERS = [
   { id: 'pass', label: 'Passed' },
 ]
 
-export default function InspectionLog({ inspections }) {
+export default function InspectionLog({ inspections, onFeedback }) {
   const [filter, setFilter] = useState('all')
   const passCount = inspections.filter((i) => i.pass_fail === 'pass').length
   const reviewCount = inspections.filter((i) => i.pass_fail === 'review').length
@@ -32,6 +33,8 @@ export default function InspectionLog({ inspections }) {
       <p className="card-sub">
         Every row is a real prediction from the trained MobileNetV2 classifier (Module 1), paired with the
         Hindi alert generated for it (Module 2) — run on held-out casting test images, not live camera capture.
+        Marking a call <strong>correct</strong> or <strong>wrong</strong> stores the operator&rsquo;s own label
+        alongside the image, which is what a pilot accumulates as retraining data.
       </p>
 
       <div className="insp-toolbar">
@@ -72,6 +75,7 @@ export default function InspectionLog({ inspections }) {
           <span>Confidence</span>
           <span>Latency</span>
           <span>Alert (Hindi)</span>
+          <span>Model call</span>
         </div>
         {sorted.map((insp) => (
           <div className="insp-row" key={insp.id ?? insp.part_id}>
@@ -87,6 +91,7 @@ export default function InspectionLog({ inspections }) {
             <span className="insp-conf">{(insp.confidence * 100).toFixed(1)}%</span>
             <span className="insp-latency">{insp.inference_ms.toFixed(0)}ms</span>
             <span className="insp-alert">{insp.alert_hi}</span>
+            <FeedbackControl inspection={insp} onRecorded={onFeedback} />
           </div>
         ))}
       </div>

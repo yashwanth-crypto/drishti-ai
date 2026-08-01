@@ -137,7 +137,9 @@ export default function App() {
             <>
               {activeTab === 'overview' && <Overview data={data} />}
               {activeTab === 'inspect' && <LiveInspect onInspected={refresh} />}
-              {activeTab === 'inspection' && <InspectionLog inspections={data.inspections} />}
+              {activeTab === 'inspection' && (
+                <InspectionLog inspections={data.inspections} onFeedback={refresh} />
+              )}
               {activeTab === 'maintenance' && <MaintenancePanel tools={data.maintenance.tools} />}
               {activeTab === 'forecast' && <InventoryForecast forecasting={data.forecasting} />}
               {activeTab === 'benchmarks' && <Benchmarks benchmarks={data.benchmarks} />}

@@ -53,6 +53,9 @@ function adaptInspection(row) {
     alert_hi: row.alertHi,
     // Seeded rows carry no stored file; the log falls back to a placeholder.
     image_url: row.imagePath ? imageUrl(row.id) : null,
+    operator_verdict: row.operatorVerdict ?? null,
+    was_correct: row.wasCorrect ?? null,
+    feedback_by: row.feedbackBy ?? null,
   }
 }
 
@@ -121,6 +124,9 @@ export async function loadDashboard() {
       review_count: kpis.reviewCount,
       pass_rate: kpis.passRate,
       avg_inference_ms: kpis.avgInferenceMs,
+      feedback_count: kpis.feedbackCount,
+      // Null until an operator has reviewed at least one part.
+      agreement_rate: kpis.agreementRate,
       tools_monitored: tools.length,
       active_maintenance_alerts: tools.filter((t) => t.status !== 'ok').length,
       // Measured once on the held-out sets, not recomputed per request.
@@ -137,6 +143,20 @@ export async function inspectImage(file, partId) {
   const query = partId ? `?partId=${encodeURIComponent(partId)}` : ''
 
   const response = await request(`/inspections${query}`, { method: 'POST', body })
+  return adaptInspection(await response.json())
+}
+
+/**
+ * Records what the operator says the part actually is. `verdict` is the true
+ * class ("ok_front" / "def_front"), not agree/disagree, so the stored rows can
+ * serve as retraining data.
+ */
+export async function sendFeedback(id, verdict) {
+  const response = await request(`/inspections/${id}/feedback`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ operatorVerdict: verdict }),
+  })
   return adaptInspection(await response.json())
 }
 

@@ -1,6 +1,7 @@
 package com.drishti.inspection;
 
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,8 +36,10 @@ public class InspectionController {
     }
 
     @PatchMapping("/inspections/{id}/feedback")
-    public Inspection feedback(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        return service.recordFeedback(id, body.get("operatorVerdict"));
+    public Inspection feedback(@PathVariable Long id,
+                               @RequestBody Map<String, String> body,
+                               Authentication authentication) {
+        return service.recordFeedback(id, body.get("operatorVerdict"), authentication.getName());
     }
 
     @GetMapping("/kpis")
