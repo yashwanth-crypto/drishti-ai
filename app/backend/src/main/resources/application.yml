@@ -2,7 +2,7 @@ spring:
   application:
     name: drishti-backend
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:drishti}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:drishti}
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:drishti_dev_pw}
   jpa:

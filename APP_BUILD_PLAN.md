@@ -181,7 +181,8 @@ All under `/api`. JWT required except `/auth/*`.
 ### Phase 0 — Design & setup  *(0.5 wk)* — ✅ done
 - [x] Finalize the data model (§5) and API list (§6).
 - [x] Create `app/` folders. Install JDK 17, Maven. *(Docker deferred to Phase 6 — needs WSL2.)*
-- [x] Postgres 16 running on **port 5433** from a user-owned data dir (`C:\devtools\pgdata`), no Windows service.
+- [x] Postgres 16 installed as the `postgresql-x64-16` Windows service on the default
+      port 5432, auto-starting with the machine.
 
 ### Phase 1 — Spring Boot skeleton + DB  *(1 wk)* — ✅ done
 - [x] Maven project with Web, WebFlux, JPA, Validation, Actuator, PostgreSQL.
