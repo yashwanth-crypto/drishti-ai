@@ -40,8 +40,13 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(rules -> rules
-                .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
+
+                // Registration is an owner action, not a public one. Left open,
+                // anyone reaching this server could create themselves an account
+                // and pick OWNER as their own role.
+                .requestMatchers(HttpMethod.POST, "/api/auth/register").hasRole("OWNER")
 
                 // Owner-only: tuning thresholds and forcing a recompute are
                 // shop-owner decisions, not shop-floor ones.

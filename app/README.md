@@ -74,16 +74,20 @@ the operator to set it aside.
 
 ## Signing in
 
-Two accounts are created on first run:
+On a **fresh** database the app seeds one OWNER and one OPERATOR and logs a
+warning naming them. Those defaults exist so a new clone is usable; they are not
+credentials for any running instance.
 
-| Username | Password | Role |
-|---|---|---|
-| `owner` | `drishti-owner` | OWNER — everything, including thresholds and recompute |
-| `operator` | `drishti-operator` | OPERATOR — inspect parts, read everything |
+Before exposing an instance to anything but localhost:
 
-These are development credentials and the app logs a warning about them at
-startup. Set `SEED_USERS=false` and register real accounts before deploying
-anywhere that matters, and override `JWT_SECRET` (any real secret, 32+ bytes).
+1. Sign in with the seeded owner and `POST /api/auth/register` real accounts.
+2. Delete the seeded ones.
+3. Set `SEED_USERS=false` so they are never recreated.
+4. Set `JWT_SECRET` to a real secret (32+ bytes). Changing it invalidates every
+   token issued under the old one, which is the point.
+
+Registration is **OWNER-only**. Left public, anyone reaching the server could
+create an account and choose OWNER as their own role.
 
 Every `/api` route except `/api/auth/login` and `/api/auth/register` needs a
 bearer token:
@@ -101,7 +105,7 @@ returns you to the login screen.
 | Method | Path | Notes |
 |---|---|---|
 | `POST` | `/api/auth/login` | `{username, password}` → JWT, valid 12h |
-| `POST` | `/api/auth/register` | same, plus optional `role`; password min 8 chars |
+| `POST` | `/api/auth/register` | **OWNER only** — creates an account; password min 8 chars |
 | `GET` | `/api/auth/me` | who the current token belongs to |
 | `GET` | `/api/settings` | thresholds — any signed-in user |
 | `PUT` | `/api/settings` | **OWNER only** |

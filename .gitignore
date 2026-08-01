@@ -50,3 +50,9 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Staged copies for demo recordings
+demo_images/
+
+# Local credentials — never commit
+app/secrets.local.json
