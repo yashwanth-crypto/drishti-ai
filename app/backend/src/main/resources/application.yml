@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: drishti-backend
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:drishti}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:drishti_dev_pw}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+drishti:
+  inference-url: ${INFERENCE_URL:http://localhost:8000}
+  # Repo root, resolved from the backend working directory. Used to find the
+  # Module 2 alert templates and the seed events.json.
+  repo-root: ${REPO_ROOT:../..}
+  image-storage: ${IMAGE_STORAGE:./data/images}
+
+logging:
+  level:
+    com.drishti: INFO

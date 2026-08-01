@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import eventsData from './data/events.json'
+import { useCallback, useEffect, useState } from 'react'
+import { loadDashboard } from './api.js'
 import Overview from './components/Overview.jsx'
 import InspectionLog from './components/InspectionLog.jsx'
+import LiveInspect from './components/LiveInspect.jsx'
 import MaintenancePanel from './components/MaintenancePanel.jsx'
 import InventoryForecast from './components/InventoryForecast.jsx'
 import Benchmarks from './components/Benchmarks.jsx'
@@ -13,6 +14,7 @@ import './App.css'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: IconOverview, title: 'Overview', sub: 'Unified view across quality, uptime and inventory' },
+  { id: 'inspect', label: 'Inspect a Part', icon: IconScan, title: 'Inspect a Part', sub: 'Upload a casting photo and run it through the live model' },
   { id: 'inspection', label: 'Quality Inspection', icon: IconScan, title: 'Quality Inspection', sub: 'CV defect detection (Module 1) → Hindi alerts (Module 2)' },
   { id: 'maintenance', label: 'Predictive Maintenance', icon: IconWrench, title: 'Predictive Maintenance', sub: 'Tool-wear remaining-life prediction (Module 3)' },
   { id: 'forecast', label: 'Demand Forecasting', icon: IconTrend, title: 'Demand Forecasting', sub: 'Weekly per-category demand with intervals (Module 4)' },
@@ -39,7 +41,15 @@ function Logo() {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('overview')
+  const [data, setData] = useState(null)
+  const [error, setError] = useState(null)
   const active = TABS.find((t) => t.id === activeTab)
+
+  const refresh = useCallback(() => {
+    loadDashboard().then(setData).catch((err) => setError(err.message))
+  }, [])
+
+  useEffect(refresh, [refresh])
 
   return (
     <div className="app-shell">
@@ -87,12 +97,29 @@ export default function App() {
         </header>
 
         <main className="app-content">
-          {activeTab === 'overview' && <Overview data={eventsData} />}
-          {activeTab === 'inspection' && <InspectionLog inspections={eventsData.inspections} />}
-          {activeTab === 'maintenance' && <MaintenancePanel tools={eventsData.maintenance.tools} />}
-          {activeTab === 'forecast' && <InventoryForecast forecasting={eventsData.forecasting} />}
-          {activeTab === 'benchmarks' && <Benchmarks benchmarks={eventsData.benchmarks} />}
-          {activeTab === 'roi' && <RoiCalculator />}
+          {error && (
+            <div className="card">
+              <h2>Can&rsquo;t reach the backend</h2>
+              <p className="card-sub">{error}</p>
+              <p className="card-sub">
+                Start it with <code>mvn spring-boot:run</code> in <code>app/backend</code>, and make sure
+                the inference service is up on port 8000.
+              </p>
+            </div>
+          )}
+          {!error && !data && <div className="card"><p className="card-sub">Loading live data…</p></div>}
+
+          {data && (
+            <>
+              {activeTab === 'overview' && <Overview data={data} />}
+              {activeTab === 'inspect' && <LiveInspect onInspected={refresh} />}
+              {activeTab === 'inspection' && <InspectionLog inspections={data.inspections} />}
+              {activeTab === 'maintenance' && <MaintenancePanel tools={data.maintenance.tools} />}
+              {activeTab === 'forecast' && <InventoryForecast forecasting={data.forecasting} />}
+              {activeTab === 'benchmarks' && <Benchmarks benchmarks={data.benchmarks} />}
+              {activeTab === 'roi' && <RoiCalculator />}
+            </>
+          )}
         </main>
       </div>
     </div>

@@ -23,6 +23,11 @@ module4_demand_forecasting/data/
 *.pt
 module1_cv_defect/models/*.onnx.data
 
+# ---- App (Java backend + inference service) ----
+app/backend/target/
+app/backend/data/
+app/inference/__pycache__/
+
 # ---- Build / export artifacts ----
 Drishti-AI_Overleaf.zip
 Drishti-AI_Paper.docx
