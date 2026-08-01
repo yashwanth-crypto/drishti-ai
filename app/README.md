@@ -44,6 +44,18 @@ npm run dev --prefix dashboard
 Open http://localhost:5173 and use the **Inspect a Part** tab to run a real image
 through the model.
 
+## Operator feedback
+
+Each row in the inspection log carries **correct** / **wrong** buttons. What gets
+stored is the operator's own label for the part — `ok_front` or `def_front` — not
+"agree"/"disagree", so the rows can be used directly as retraining data. With two
+classes, "wrong" fully determines the true label.
+
+Alongside the label the row records who marked it and when, and keeps the stored
+image. `GET /api/kpis` then reports `feedbackCount` and `agreementRate`: how often
+the model matched the operator, measured in this shop rather than on the held-out
+test set.
+
 ## The defect threshold
 
 An inspection can end in three states, not two:
@@ -144,8 +156,9 @@ checkpoint is the seed-2 run at 99.30%.
   (271 weeks) instead. That file is gitignored; rebuild it with
   `python src/feature_extraction.py` after downloading the raw demand dataset.
   Verified to reproduce the prototype's published figures exactly.
-- **No operator feedback UI.** `PATCH /api/inspections/{id}/feedback` works, but
-  nothing in the dashboard calls it yet.
+- **Feedback is captured but not yet used.** The corrections accumulate with their
+  images; nothing retrains on them. That is deliberate — retraining needs pilot
+  volume, not a handful of rows.
 - **Not containerized.** Docker Compose needs WSL2 on this machine.
 - **Module 3 has no source data locally.** The milling dataset isn't downloaded, so
   `POST /api/maintenance/predict` only works when the caller supplies all 125

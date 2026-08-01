@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -105,11 +106,26 @@ public class InspectionService {
         return repository.findAllByOrderByTimestampDesc();
     }
 
-    public Inspection recordFeedback(Long id, String operatorVerdict) {
+    /** The classes an operator can label a part as. */
+    private static final Set<String> VERDICTS = Set.of("ok_front", "def_front");
+
+    /**
+     * Records what the operator says the part actually is. The verdict is the
+     * true label rather than agree/disagree, so the rows can be used directly as
+     * retraining data later.
+     */
+    public Inspection recordFeedback(Long id, String operatorVerdict, String username) {
+        if (operatorVerdict == null || !VERDICTS.contains(operatorVerdict)) {
+            throw new IllegalArgumentException(
+                    "operatorVerdict must be one of " + VERDICTS + ", got: " + operatorVerdict);
+        }
         Inspection inspection = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("No inspection " + id));
+
         inspection.setOperatorVerdict(operatorVerdict);
         inspection.setWasCorrect(operatorVerdict.equals(inspection.getDefectType()));
+        inspection.setFeedbackBy(username);
+        inspection.setFeedbackAt(Instant.now());
         return repository.save(inspection);
     }
 
@@ -118,17 +134,30 @@ public class InspectionService {
         long passCount = repository.countByPassFail("pass");
         long failCount = repository.countByPassFail("fail");
         long reviewCount = repository.countByPassFail(REVIEW);
-        double avgMs = repository.findAll().stream()
+        List<Inspection> all = repository.findAll();
+        double avgMs = all.stream()
                 .filter(i -> i.getInferenceMs() != null)
                 .mapToDouble(Inspection::getInferenceMs)
                 .average().orElse(0.0);
         double passRate = total == 0 ? 0.0 : (double) passCount / total;
 
+        // Measured against operator corrections, so it tracks the model in this
+        // shop rather than on the held-out test set.
+        List<Inspection> reviewed = all.stream()
+                .filter(i -> i.getWasCorrect() != null)
+                .toList();
+        long agreed = reviewed.stream().filter(Inspection::getWasCorrect).count();
+        Double agreementRate = reviewed.isEmpty()
+                ? null
+                : Math.round((double) agreed / reviewed.size() * 10000) / 10000.0;
+
         return new Kpis(total, passCount, failCount, reviewCount,
                 Math.round(passRate * 10000) / 10000.0,
-                Math.round(avgMs * 100) / 100.0);
+                Math.round(avgMs * 100) / 100.0,
+                reviewed.size(), agreementRate);
     }
 
     public record Kpis(long totalInspections, long passCount, long failCount, long reviewCount,
-                       double passRate, double avgInferenceMs) {}
+                       double passRate, double avgInferenceMs,
+                       long feedbackCount, Double agreementRate) {}
 }

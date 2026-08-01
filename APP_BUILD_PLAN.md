@@ -257,8 +257,15 @@ Let the owner tune how strict the pass/fail cutoff is (trade more false alarms f
 - [x] Its own `needs_review` Hindi template (additive; no existing message changed).
 - [x] Surfaced in the dashboard: amber badge, "Needs review" filter, KPI count.
 
-### 9.3 Operator feedback loop  ⭐ the only real moat
+### 9.3 Operator feedback loop  ⭐ the only real moat — ✅ capture done
 When an operator marks a prediction wrong, store the image + correction (`PATCH /inspections/{id}/feedback`). Over a pilot this becomes **proprietary data no competitor has** — and later, retraining fuel. Build the *capture* now; retraining comes later.
+
+- [x] correct/wrong buttons on every row of the inspection log.
+- [x] Stores the operator's **true label**, not agree/disagree, so rows are
+      retraining-ready. Also records who marked it and when.
+- [x] `agreementRate` in `/api/kpis` — model-vs-operator accuracy in this shop,
+      surfaced as an Overview tile once anything has been reviewed.
+- [ ] Retraining on the captured corrections — needs pilot volume first.
 
 ---
 

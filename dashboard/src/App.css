@@ -452,10 +452,10 @@
 .insp-header,
 .insp-row {
   display: grid;
-  grid-template-columns: 92px 44px 80px 78px 74px 66px 1fr;
+  grid-template-columns: 92px 44px 80px 78px 74px 66px 1fr 118px;
   align-items: center;
   gap: 10px;
-  min-width: 640px;
+  min-width: 760px;
 }
 
 .insp-header {
@@ -862,6 +862,54 @@
   font-size: 14px;
   line-height: 1.55;
   color: var(--text-primary);
+}
+
+/* ---------- Operator feedback ---------- */
+
+.feedback-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.feedback-btn {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.feedback-btn:disabled { opacity: 0.45; cursor: progress; }
+
+.feedback-btn.agree:hover:not(:disabled) {
+  color: var(--good);
+  border-color: var(--good);
+  background: var(--good-soft);
+}
+
+.feedback-btn.disagree:hover:not(:disabled) {
+  color: var(--critical);
+  border-color: var(--critical);
+  background: var(--critical-soft);
+}
+
+.feedback-done {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.feedback-done.agreed { color: var(--good); }
+.feedback-done.corrected { color: var(--critical); }
+
+.feedback-error {
+  font-size: 10.5px;
+  color: var(--critical);
 }
 
 /* ---------- Chart cards (maintenance + forecast) ---------- */

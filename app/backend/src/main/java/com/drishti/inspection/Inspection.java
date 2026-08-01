@@ -23,9 +23,18 @@ public class Inspection {
 
     private String imagePath;
 
-    /** Operator's correction when they disagree with the model. Null until reviewed. */
+    /**
+     * The operator's own call on what this part actually is — the ground-truth
+     * label, not "agree"/"disagree". Null until someone reviews it. Together
+     * with the stored image this is the retraining set the pilot accumulates.
+     */
     private String operatorVerdict;
+
+    /** Whether the model's call matched the operator's. Derived, never sent in. */
     private Boolean wasCorrect;
+
+    private String feedbackBy;
+    private Instant feedbackAt;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -59,4 +68,10 @@ public class Inspection {
 
     public Boolean getWasCorrect() { return wasCorrect; }
     public void setWasCorrect(Boolean wasCorrect) { this.wasCorrect = wasCorrect; }
+
+    public String getFeedbackBy() { return feedbackBy; }
+    public void setFeedbackBy(String feedbackBy) { this.feedbackBy = feedbackBy; }
+
+    public Instant getFeedbackAt() { return feedbackAt; }
+    public void setFeedbackAt(Instant feedbackAt) { this.feedbackAt = feedbackAt; }
 }
