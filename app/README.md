@@ -44,10 +44,39 @@ npm run dev --prefix dashboard
 Open http://localhost:5173 and use the **Inspect a Part** tab to run a real image
 through the model.
 
+## Signing in
+
+Two accounts are created on first run:
+
+| Username | Password | Role |
+|---|---|---|
+| `owner` | `drishti-owner` | OWNER — everything, including thresholds and recompute |
+| `operator` | `drishti-operator` | OPERATOR — inspect parts, read everything |
+
+These are development credentials and the app logs a warning about them at
+startup. Set `SEED_USERS=false` and register real accounts before deploying
+anywhere that matters, and override `JWT_SECRET` (any real secret, 32+ bytes).
+
+Every `/api` route except `/api/auth/login` and `/api/auth/register` needs a
+bearer token:
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/kpis
+```
+
+`401` means the token is missing or expired; `403` means the account is signed in
+but its role isn't allowed. The dashboard treats these differently — only a 401
+returns you to the login screen.
+
 ## API
 
 | Method | Path | Notes |
 |---|---|---|
+| `POST` | `/api/auth/login` | `{username, password}` → JWT, valid 12h |
+| `POST` | `/api/auth/register` | same, plus optional `role`; password min 8 chars |
+| `GET` | `/api/auth/me` | who the current token belongs to |
+| `GET` | `/api/settings` | thresholds — any signed-in user |
+| `PUT` | `/api/settings` | **OWNER only** |
 | `POST` | `/api/inspections` | multipart `image`, optional `partId` → runs the vision model, generates the Hindi alert, stores the row |
 | `GET` | `/api/inspections?filter=all\|pass\|fail` | inspection log |
 | `PATCH` | `/api/inspections/{id}/feedback` | `{"operatorVerdict": "ok_front"}` — records operator corrections |
@@ -55,7 +84,7 @@ through the model.
 | `GET` | `/api/maintenance/tools` | per-tool status with RUL history |
 | `POST` | `/api/maintenance/predict` | `{toolRef, cycle, features}` — 125 named features |
 | `GET` | `/api/forecast/categories` | every category's history + forward forecast |
-| `POST` | `/api/forecast/run?category=X&horizon=4` | recomputes the forward forecast |
+| `POST` | `/api/forecast/run?category=X&horizon=4` | recomputes the forward forecast — **OWNER only** |
 
 The inference service (internal; the backend is the only intended caller) exposes
 `/predict/vision`, `/predict/maintenance`, `/predict/forecast`, plus
@@ -99,8 +128,11 @@ checkpoint is the seed-2 run at 99.30%.
   (271 weeks) instead. That file is gitignored; rebuild it with
   `python src/feature_extraction.py` after downloading the raw demand dataset.
   Verified to reproduce the prototype's published figures exactly.
-- **No auth yet.** Every endpoint is open. JWT and the `OPERATOR`/`OWNER` split are
-  the next slice.
+- **The defect threshold is stored but not yet applied.** An owner can set it and
+  it persists, but the inspection service doesn't consult it when deciding
+  pass/fail. Wiring that in is what actually delivers §9.2.
+- **No operator feedback UI.** `PATCH /api/inspections/{id}/feedback` works, but
+  nothing in the dashboard calls it yet.
 - **Not containerized.** Docker Compose needs WSL2 on this machine.
 - **Module 3 has no source data locally.** The milling dataset isn't downloaded, so
   `POST /api/maintenance/predict` only works when the caller supplies all 125

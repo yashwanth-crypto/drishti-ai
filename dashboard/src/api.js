@@ -7,13 +7,34 @@
  * are measured results from the paper, not runtime state.
  */
 import staticData from './data/events.json'
+import { authHeader, sessionExpired } from './auth.js'
 
 const BASE = import.meta.env.VITE_API_BASE ?? '/api'
 
+/**
+ * 401 means the token is missing or expired, so the session is dropped and the
+ * UI falls back to the login screen. 403 means the account is signed in but its
+ * role isn't allowed -- that must not log anyone out.
+ */
+async function request(path, options = {}) {
+  const response = await fetch(`${BASE}${path}`, {
+    ...options,
+    headers: { ...authHeader(), ...(options.headers ?? {}) },
+  })
+
+  if (response.status === 401) {
+    sessionExpired()
+    throw new Error('Your session expired — please sign in again')
+  }
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}))
+    throw new Error(body.error ?? `${path} failed (${response.status})`)
+  }
+  return response
+}
+
 async function get(path) {
-  const response = await fetch(`${BASE}${path}`)
-  if (!response.ok) throw new Error(`GET ${path} failed (${response.status})`)
-  return response.json()
+  return (await request(path)).json()
 }
 
 export function imageUrl(id) {
@@ -114,10 +135,20 @@ export async function inspectImage(file, partId) {
   body.append('image', file)
   const query = partId ? `?partId=${encodeURIComponent(partId)}` : ''
 
-  const response = await fetch(`${BASE}/inspections${query}`, { method: 'POST', body })
-  if (!response.ok) {
-    const detail = await response.text().catch(() => '')
-    throw new Error(detail || `Inspection failed (${response.status})`)
-  }
+  const response = await request(`/inspections${query}`, { method: 'POST', body })
   return adaptInspection(await response.json())
+}
+
+export async function getSettings() {
+  return get('/settings')
+}
+
+/** Owner-only; the API answers 403 for an operator. */
+export async function saveSettings(defectThreshold, rulAlertThreshold) {
+  const response = await request('/settings', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ defectThreshold, rulAlertThreshold }),
+  })
+  return response.json()
 }

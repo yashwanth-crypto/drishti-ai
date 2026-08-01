@@ -24,6 +24,13 @@ management:
         include: health,info
 
 drishti:
+  jwt:
+    # Override in any real deployment: JWT_SECRET must be at least 32 bytes.
+    secret: ${JWT_SECRET:drishti-dev-signing-key-change-me-in-production}
+    ttl-hours: ${JWT_TTL_HOURS:12}
+  # Accounts created on first run so a fresh install is usable. Both are
+  # disabled by setting seed-users to false.
+  seed-users: ${SEED_USERS:true}
   inference-url: ${INFERENCE_URL:http://localhost:8000}
   # Repo root, resolved from the backend working directory. Used to find the
   # Module 2 alert templates and the seed events.json.
