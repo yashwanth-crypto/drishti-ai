@@ -14,6 +14,10 @@ M4_DIR = REPO_ROOT / "module4_demand_forecasting"
 M1_CHECKPOINT = M1_DIR / "models" / "casting_mobilenetv2_proper.pt"
 M3_MODEL = M3_DIR / "models" / "tool_wear_xgb.json"
 M3_METADATA = M3_DIR / "models" / "model_metadata.json"
+# Feature-space profile of the training set, used to spot images the model was
+# never trained to judge. Built by module1_cv_defect/src/ood.py.
+M1_OOD_STATS = M1_DIR / "models" / "ood_stats.npz"
+
 M4_MODEL = M4_DIR / "models" / "demand_forecast_xgb.json"
 M4_METADATA = M4_DIR / "models" / "model_metadata.json"
 # Recorded weekly series. Gitignored -- rebuild with feature_extraction.py.
