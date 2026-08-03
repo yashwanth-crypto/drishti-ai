@@ -28,8 +28,18 @@ from pathlib import Path
 
 import cv2
 
-LABELS = {ord("g"): "ok_front", ord("d"): "def_front"}
+# Both cases: with Caps Lock on, the window reports 'G', not 'g', and every
+# keypress would otherwise be silently ignored.
+LABELS = {
+    ord("g"): "ok_front", ord("G"): "ok_front",
+    ord("d"): "def_front", ord("D"): "def_front",
+}
 PRETTY = {"ok_front": "GOOD", "def_front": "DEFECT"}
+WINDOW = "Drishti capture"
+
+
+def pressed(key: int, *chars: str) -> bool:
+    return key in {ord(c) for ch in chars for c in (ch.lower(), ch.upper())}
 
 
 def centre_square(frame):
@@ -47,6 +57,7 @@ def overlay(frame, box, counts, saved_msg, frozen):
     lines = [
         f"GOOD {counts['ok_front']}   DEFECT {counts['def_front']}",
         "G=good  D=defect  U=undo  SPACE=freeze  Q=quit",
+        "keys only work with THIS window focused - click it first",
     ]
     if frozen:
         lines.insert(0, "FROZEN - press SPACE to resume")
@@ -108,11 +119,16 @@ def main():
             held = frame.copy()
 
         crop, box = centre_square(frame)
-        cv2.imshow("Drishti capture", overlay(frame.copy(), box, counts, saved_msg, frozen))
+        cv2.imshow(WINDOW, overlay(frame.copy(), box, counts, saved_msg, frozen))
 
         key = cv2.waitKey(1) & 0xFF
 
-        if key == ord("q"):
+        # Closing the window with its X button should quit, not leave a headless
+        # loop running that only Task Manager can stop.
+        if cv2.getWindowProperty(WINDOW, cv2.WND_PROP_VISIBLE) < 1:
+            break
+
+        if pressed(key, "q") or key == 27:      # Q or Esc
             break
 
         elif key == ord(" "):
@@ -132,7 +148,7 @@ def main():
             print(f"  {PRETTY[label]:<7} {path}")
             frozen = False
 
-        elif key == ord("u") and history:
+        elif pressed(key, "u") and history:
             last = history.pop()
             label = last.parent.name
             last.unlink(missing_ok=True)
