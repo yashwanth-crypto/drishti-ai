@@ -82,7 +82,13 @@ public class InferenceClient {
                 .block(Duration.ofSeconds(60));
     }
 
-    public record VisionResult(String pass_fail, String defect_type, Double confidence, Double inference_ms) {}
+    /**
+     * `recognised` is false when the image sits outside the distribution the
+     * model was trained on — a different part, camera or lighting. Null when the
+     * inference service has no OOD profile loaded.
+     */
+    public record VisionResult(String pass_fail, String defect_type, Double confidence,
+                               Double inference_ms, Boolean recognised, Double ood_distance) {}
 
     public record MaintenanceResult(Double predicted_rul, Boolean wear_alert) {}
 

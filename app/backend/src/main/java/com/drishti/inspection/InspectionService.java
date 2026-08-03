@@ -49,10 +49,18 @@ public class InspectionService {
         Path stored = imageStorage.resolve(UUID.randomUUID() + ".jpg");
         Files.write(stored, bytes);
 
-        String verdict = applyThreshold(result);
-        // A borderline pass is reported under its own alert template, so the
-        // operator is told to set the part aside rather than send it onward.
-        String alertCode = REVIEW.equals(verdict) ? "needs_review" : result.defect_type();
+        String verdict = decide(result);
+        // Three different things to tell an operator: the model's call, "it looks
+        // good but I'm not confident", and "I don't recognise this part at all".
+        // The last one must not read as a quality judgement.
+        String alertCode;
+        if (Boolean.FALSE.equals(result.recognised())) {
+            alertCode = "not_recognised";
+        } else if (REVIEW.equals(verdict)) {
+            alertCode = "needs_review";
+        } else {
+            alertCode = result.defect_type();
+        }
 
         Inspection inspection = new Inspection();
         inspection.setPartId(partId);
@@ -68,11 +76,18 @@ public class InspectionService {
     }
 
     /**
-     * A part the model calls defective always fails. A part it calls good only
-     * passes if it is confident enough; otherwise it goes to review. The
-     * threshold therefore only ever makes the system stricter, never laxer.
+     * A part the model does not recognise goes to a human, whatever it guessed:
+     * a classifier trained on one foundry's camera rig will still answer
+     * confidently for a part it has never seen, and that answer means nothing.
+     *
+     * Otherwise, a part called defective always fails, and a part called good
+     * passes only if the model is confident enough. The threshold therefore only
+     * ever makes the system stricter, never laxer.
      */
-    private String applyThreshold(InferenceClient.VisionResult result) {
+    private String decide(InferenceClient.VisionResult result) {
+        if (Boolean.FALSE.equals(result.recognised())) {
+            return REVIEW;
+        }
         if (!"pass".equals(result.pass_fail())) {
             return result.pass_fail();
         }
