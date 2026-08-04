@@ -53,6 +53,11 @@ if (-not (Test-Path $secretsPath)) {
 }
 $secrets = Get-Content $secretsPath -Raw | ConvertFrom-Json
 
+# The database password lives here too when it is not the built-in default, so
+# every credential this app needs is in one gitignored file rather than split
+# between a file and whatever happens to be in the environment.
+if ($secrets.db_password) { $env:DB_PASSWORD = $secrets.db_password }
+
 # ---- 3. inference ----------------------------------------------------------
 Start-Process -FilePath $py `
     -ArgumentList '-m','uvicorn','main:app','--port','8000','--host','127.0.0.1' `
@@ -61,9 +66,16 @@ Start-Process -FilePath $py `
 Wait-Url 'http://127.0.0.1:8000/health' 'inference' | Out-Null
 
 # ---- 4. backend ------------------------------------------------------------
+# Built as one string first. Concatenating inline inside -ArgumentList is a
+# parse error, because the continuation and the + operator fight each other.
+$backendCmd = "`$env:JWT_SECRET='$($secrets.jwt_secret)'; `$env:SEED_USERS='false'; "
+if ($secrets.db_password) {
+    $backendCmd += "`$env:DB_PASSWORD='$($secrets.db_password)'; "
+}
+$backendCmd += "& '$java' -jar target\drishti-backend-1.0.0.jar"
+
 Start-Process -FilePath 'powershell' `
-    -ArgumentList '-NoProfile','-Command',
-        "`$env:JWT_SECRET='$($secrets.jwt_secret)'; `$env:SEED_USERS='false'; & '$java' -jar target\drishti-backend-1.0.0.jar" `
+    -ArgumentList '-NoProfile', '-Command', $backendCmd `
     -WorkingDirectory (Join-Path $root 'app\backend') `
     -WindowStyle Minimized
 Wait-Url 'http://localhost:8080/actuator/health' 'backend' | Out-Null
