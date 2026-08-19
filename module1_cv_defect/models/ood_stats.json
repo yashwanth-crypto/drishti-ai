@@ -1,0 +1,9 @@
+{
+  "threshold": 55.24026066172369,
+  "train_median": 21.642715903998212,
+  "n_images": 995,
+  "classes": [
+    "def_front",
+    "ok_front"
+  ]
+}

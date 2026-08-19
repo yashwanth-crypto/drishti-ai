@@ -21,6 +21,12 @@ pg_isready -h localhost -p 5432
 
 Then start the two application processes:
 
+**Note:** the vision service's out-of-distribution profile
+(`module1_cv_defect/models/ood_stats.npz`) is not committed &mdash; it is 12.5 MB of
+covariance matrix and is meaningless without the training set. Rebuild it once with
+`python src/ood.py fit` from `module1_cv_defect/`. Without it the service still runs,
+it just cannot tell a familiar part from an unfamiliar one.
+
 **2. Inference service** — loads the vision model on GPU and both XGBoost models at startup:
 
 ```bash
