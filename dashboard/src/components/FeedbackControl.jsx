@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { sendFeedback } from '../api.js'
+import { isDemoMode } from '../demo.js'
 
 const OTHER = { ok_front: 'def_front', def_front: 'ok_front' }
 const LABEL = { ok_front: 'good', def_front: 'defective' }
@@ -12,6 +13,7 @@ const LABEL = { ok_front: 'good', def_front: 'defective' }
 export default function FeedbackControl({ inspection, onRecorded }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(false)
+  const demo = isDemoMode()
 
   async function record(verdict) {
     setBusy(true)
@@ -24,6 +26,9 @@ export default function FeedbackControl({ inspection, onRecorded }) {
       setBusy(false)
     }
   }
+
+  // Corrections are stored server-side, so there is nowhere to put them here.
+  if (demo) return <span className="feedback-done demo">demo</span>
 
   if (inspection.operator_verdict) {
     const agreed = inspection.was_correct

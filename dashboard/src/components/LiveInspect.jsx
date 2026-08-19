@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import StatusBadge from './StatusBadge.jsx'
 import { IconScan } from './Icons.jsx'
 import { inspectImage } from '../api.js'
+import { isDemoMode } from '../demo.js'
 
 export default function LiveInspect({ onInspected }) {
   const [dragging, setDragging] = useState(false)
@@ -11,6 +12,28 @@ export default function LiveInspect({ onInspected }) {
   const [preview, setPreview] = useState(null)
   const [partId, setPartId] = useState('')
   const fileInput = useRef(null)
+
+  // Uploading needs the model behind it; on a static host there is nothing to
+  // send the image to, so say so rather than let the drop zone fail.
+  if (isDemoMode()) {
+    return (
+      <div className="card">
+        <h2 className="with-icon">
+          <span className="ct-icon"><IconScan size={17} /></span>Inspect a part
+        </h2>
+        <p className="card-sub">
+          In the running system you drop a casting photo here and the trained MobileNetV2
+          classifier returns a verdict in milliseconds, with the Hindi operator alert
+          alongside it.
+        </p>
+        <p className="card-sub" style={{ marginBottom: 0 }}>
+          This page is a recorded demo, so there is no model behind it to run. The{' '}
+          <strong>Quality Inspection</strong> tab shows real predictions this model produced,
+          each with the alert generated for it.
+        </p>
+      </div>
+    )
+  }
 
   async function run(file) {
     if (!file) return

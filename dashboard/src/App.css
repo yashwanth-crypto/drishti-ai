@@ -1256,3 +1256,29 @@
     animation: none;
   }
 }
+
+/* ---------- Recorded-demo notice ---------- */
+
+.demo-banner {
+  background: var(--warning-soft);
+  border: 1px solid rgba(224, 138, 0, 0.35);
+  border-radius: 11px;
+  padding: 13px 17px;
+  margin-bottom: 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.demo-banner strong { color: var(--warning); }
+
+/* Recorded data isn't live, so the pulsing dot would be a small lie. */
+.live-dot.idle {
+  background: var(--text-muted);
+  animation: none;
+}
+
+.feedback-done.demo {
+  color: var(--text-muted);
+  font-weight: 500;
+}

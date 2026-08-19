@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getSettings, saveSettings } from '../api.js'
 import { isOwner } from '../auth.js'
+import { isDemoMode } from '../demo.js'
 import { IconTarget } from './Icons.jsx'
 
 export default function SettingsPanel() {
@@ -9,16 +10,18 @@ export default function SettingsPanel() {
   const [status, setStatus] = useState(null)
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
-  const owner = isOwner()
+  const demo = isDemoMode()
+  const owner = !demo && isOwner()
 
   useEffect(() => {
+    if (demo) return          // no backend to read them from
     getSettings()
       .then((s) => {
         setDefectThreshold(s.defectThreshold)
         setRulAlertThreshold(s.rulAlertThreshold)
       })
       .catch((err) => setError(err.message))
-  }, [])
+  }, [demo])
 
   async function submit(event) {
     event.preventDefault()
@@ -77,7 +80,9 @@ export default function SettingsPanel() {
         </button>
       ) : (
         <p className="roi-caveat">
-          You are signed in as an operator, so these are read-only. Ask an owner to change them.
+          {demo
+            ? 'These are the shipped defaults. In the running system an owner moves these sliders and the change takes effect on the next inspection.'
+            : 'You are signed in as an operator, so these are read-only. Ask an owner to change them.'}
         </p>
       )}
     </form>
