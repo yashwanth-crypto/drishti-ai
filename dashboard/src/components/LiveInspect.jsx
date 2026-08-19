@@ -102,8 +102,11 @@ export default function LiveInspect({ onInspected }) {
               <h2>{result.part_id}</h2>
               <p className="card-sub" style={{ marginBottom: 0 }}>
                 Classified as <strong>{result.defect_type}</strong> in {result.inference_ms.toFixed(0)}ms
-                {result.pass_fail === 'review' &&
-                  ' — below the confidence threshold, so it needs a human check'}
+                {result.pass_fail === 'review' && (
+                  result.recognised === false
+                    ? ' — this is not like the parts the model was trained on, so a human should check it'
+                    : ' — below the confidence threshold, so it needs a human check'
+                )}
               </p>
             </div>
             <StatusBadge

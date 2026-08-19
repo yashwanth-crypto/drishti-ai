@@ -53,6 +53,8 @@ function adaptInspection(row) {
     alert_hi: row.alertHi,
     // Seeded rows carry no stored file; the log falls back to a placeholder.
     image_url: row.imagePath ? imageUrl(row.id) : null,
+    // Distinguishes the two reasons a part lands in review.
+    recognised: row.recognised ?? null,
     operator_verdict: row.operatorVerdict ?? null,
     was_correct: row.wasCorrect ?? null,
     feedback_by: row.feedbackBy ?? null,
