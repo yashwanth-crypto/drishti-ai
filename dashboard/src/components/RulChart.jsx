@@ -35,9 +35,15 @@ export default function RulChart({ history }) {
   const xScale = (x) => margin.left + ((x - xMin) / Math.max(xMax - xMin, 1)) * plotW
   const yScale = (y) => margin.top + plotH - y * plotH
 
-  const actualPx = history.map((h) => ({ x: xScale(h.cycle), y: yScale(h.actual_rul) }))
+  // A live prediction has no ground truth until the tool actually fails, so
+  // actual_rul is null for those readings. They must be skipped rather than
+  // plotted, or the line dives to 0% and reads as a sudden tool failure.
+  const measured = history.filter((h) => h.actual_rul != null)
+  const actualPx = measured.map((h) => ({ x: xScale(h.cycle), y: yScale(h.actual_rul) }))
   const predPx = history.map((h) => ({ x: xScale(h.cycle), y: yScale(h.predicted_rul) }))
-  const areaPath = `${smoothPath(actualPx)} L ${actualPx[actualPx.length - 1].x} ${yScale(0)} L ${actualPx[0].x} ${yScale(0)} Z`
+  const areaPath = actualPx.length
+    ? `${smoothPath(actualPx)} L ${actualPx[actualPx.length - 1].x} ${yScale(0)} L ${actualPx[0].x} ${yScale(0)} Z`
+    : ''
 
   const thresholdY = yScale(WEAR_ALERT_THRESHOLD)
 
@@ -53,9 +59,12 @@ export default function RulChart({ history }) {
   return (
     <div className="chart-wrap" ref={wrapRef} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
       {hp && (
-        <div className="chart-tooltip" style={{ left: `${(xScale(hp.cycle) / W) * 100}%`, top: `${(yScale(Math.max(hp.actual_rul, hp.predicted_rul)) / H) * 100}%` }}>
+        <div className="chart-tooltip" style={{ left: `${(xScale(hp.cycle) / W) * 100}%`, top: `${(yScale(Math.max(hp.actual_rul ?? 0, hp.predicted_rul)) / H) * 100}%` }}>
           <div className="tt-label">cycle {hp.cycle}</div>
-          <div>actual {(hp.actual_rul * 100).toFixed(0)}% · pred {(hp.predicted_rul * 100).toFixed(0)}%</div>
+          <div>
+            {hp.actual_rul != null && `actual ${(hp.actual_rul * 100).toFixed(0)}% · `}
+            pred {(hp.predicted_rul * 100).toFixed(0)}%
+          </div>
         </div>
       )}
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
@@ -83,7 +92,9 @@ export default function RulChart({ history }) {
           <>
             <line x1={xScale(hp.cycle)} y1={margin.top} x2={xScale(hp.cycle)} y2={margin.top + plotH} stroke="var(--baseline)" strokeWidth="1" strokeDasharray="3,3" />
             <circle cx={xScale(hp.cycle)} cy={yScale(hp.predicted_rul)} r="4" fill="var(--series-1)" stroke="var(--surface-1)" strokeWidth="2" />
-            <circle cx={xScale(hp.cycle)} cy={yScale(hp.actual_rul)} r="4" fill="var(--series-2)" stroke="var(--surface-1)" strokeWidth="2" />
+            {hp.actual_rul != null && (
+              <circle cx={xScale(hp.cycle)} cy={yScale(hp.actual_rul)} r="4" fill="var(--series-2)" stroke="var(--surface-1)" strokeWidth="2" />
+            )}
           </>
         )}
 

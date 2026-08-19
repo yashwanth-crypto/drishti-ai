@@ -1,23 +1,31 @@
-import { useState } from 'react'
-import eventsData from './data/events.json'
+import { useCallback, useEffect, useState } from 'react'
+import { loadDashboard } from './api.js'
+import { getSession, logout, onSessionChange } from './auth.js'
+import { DEMO_SESSION, demoDashboard, isDemoMode, probeBackend } from './demo.js'
+import Login from './components/Login.jsx'
 import Overview from './components/Overview.jsx'
 import InspectionLog from './components/InspectionLog.jsx'
+import LiveInspect from './components/LiveInspect.jsx'
 import MaintenancePanel from './components/MaintenancePanel.jsx'
 import InventoryForecast from './components/InventoryForecast.jsx'
 import Benchmarks from './components/Benchmarks.jsx'
 import RoiCalculator from './components/RoiCalculator.jsx'
+import SettingsPanel from './components/SettingsPanel.jsx'
 import {
-  IconOverview, IconScan, IconWrench, IconTrend, IconBars, IconCalculator,
+  IconOverview, IconScan, IconWrench, IconTrend, IconBars, IconCalculator, IconTarget,
 } from './components/Icons.jsx'
 import './App.css'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: IconOverview, title: 'Overview', sub: 'Unified view across quality, uptime and inventory' },
+  { id: 'inspect', label: 'Inspect a Part', icon: IconScan, title: 'Inspect a Part', sub: 'Upload a casting photo and run it through the live model' },
   { id: 'inspection', label: 'Quality Inspection', icon: IconScan, title: 'Quality Inspection', sub: 'CV defect detection (Module 1) → Hindi alerts (Module 2)' },
   { id: 'maintenance', label: 'Predictive Maintenance', icon: IconWrench, title: 'Predictive Maintenance', sub: 'Tool-wear remaining-life prediction (Module 3)' },
   { id: 'forecast', label: 'Demand Forecasting', icon: IconTrend, title: 'Demand Forecasting', sub: 'Weekly per-category demand with intervals (Module 4)' },
   { id: 'benchmarks', label: 'Benchmarks', icon: IconBars, title: 'Model Benchmarks', sub: 'Every model measured against baselines' },
   { id: 'roi', label: 'ROI Calculator', icon: IconCalculator, title: 'ROI Calculator', sub: 'Transparent, editable savings projection' },
+  // Visible to everyone, but only an owner can change anything here.
+  { id: 'settings', label: 'Settings', icon: IconTarget, title: 'Settings', sub: 'Detection and maintenance thresholds' },
 ]
 
 function Logo() {
@@ -39,7 +47,45 @@ function Logo() {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('overview')
+  const [data, setData] = useState(null)
+  const [error, setError] = useState(null)
+  const [session, setSession] = useState(getSession)
+  const [demo, setDemo] = useState(false)
+  const [probing, setProbing] = useState(true)
   const active = TABS.find((t) => t.id === activeTab)
+
+  const refresh = useCallback(() => {
+    setError(null)
+    if (isDemoMode()) {
+      setData(demoDashboard())
+      return
+    }
+    loadDashboard().then(setData).catch((err) => setError(err.message))
+  }, [])
+
+  // A static host has no backend to log into, so find out before gating on a
+  // login the visitor could never complete.
+  useEffect(() => {
+    probeBackend().then((isDemo) => {
+      setDemo(isDemo)
+      setProbing(false)
+    })
+  }, [])
+
+  // An expired token clears the session from inside api.js, which drops the UI
+  // back to the login screen wherever the user happened to be.
+  useEffect(() => onSessionChange(setSession), [])
+
+  useEffect(() => {
+    if (probing) return
+    if (demo || session) refresh()
+    else setData(null)
+  }, [probing, demo, session, refresh])
+
+  if (probing) return null
+  if (!demo && !session) return <Login onSignedIn={() => setSession(getSession())} />
+
+  const account = demo ? DEMO_SESSION : session
 
   return (
     <div className="app-shell">
@@ -68,6 +114,14 @@ export default function App() {
           })}
         </nav>
 
+        <div className="sidebar-user">
+          <div className="sidebar-user-id">
+            <span className="sidebar-username">{account.username}</span>
+            <span className={`role-chip ${account.role === 'OWNER' ? 'owner' : ''}`}>{account.role}</span>
+          </div>
+          {!demo && <button className="signout-btn" onClick={logout}>Sign out</button>}
+        </div>
+
         <div className="sidebar-foot">
           <span className="live-dot" />
           <span>Proof-of-concept · real model output on public datasets</span>
@@ -81,18 +135,45 @@ export default function App() {
             <p className="topbar-sub">{active.sub}</p>
           </div>
           <div className="header-meta">
-            <span className="live-dot" />
-            Live dashboard
+            <span className={`live-dot ${demo ? 'idle' : ''}`} />
+            {demo ? 'Recorded demo' : 'Live dashboard'}
           </div>
         </header>
 
         <main className="app-content">
-          {activeTab === 'overview' && <Overview data={eventsData} />}
-          {activeTab === 'inspection' && <InspectionLog inspections={eventsData.inspections} />}
-          {activeTab === 'maintenance' && <MaintenancePanel tools={eventsData.maintenance.tools} />}
-          {activeTab === 'forecast' && <InventoryForecast forecasting={eventsData.forecasting} />}
-          {activeTab === 'benchmarks' && <Benchmarks benchmarks={eventsData.benchmarks} />}
-          {activeTab === 'roi' && <RoiCalculator />}
+          {demo && (
+            <div className="demo-banner">
+              <strong>Recorded demo.</strong> These are real measured results from the
+              trained models, saved from earlier runs &mdash; not computed live. Running
+              a new image through the model needs the full stack on a local machine.
+            </div>
+          )}
+          {error && (
+            <div className="card">
+              <h2>Something went wrong</h2>
+              <p className="card-sub">{error}</p>
+              <p className="card-sub">
+                If the backend isn&rsquo;t running, start it with <code>mvn spring-boot:run</code> in{' '}
+                <code>app/backend</code>, and make sure the inference service is up on port 8000.
+              </p>
+            </div>
+          )}
+          {!error && !data && <div className="card"><p className="card-sub">Loading live data…</p></div>}
+
+          {data && (
+            <>
+              {activeTab === 'overview' && <Overview data={data} />}
+              {activeTab === 'inspect' && <LiveInspect onInspected={refresh} />}
+              {activeTab === 'inspection' && (
+                <InspectionLog inspections={data.inspections} onFeedback={refresh} />
+              )}
+              {activeTab === 'maintenance' && <MaintenancePanel tools={data.maintenance.tools} />}
+              {activeTab === 'forecast' && <InventoryForecast forecasting={data.forecasting} />}
+              {activeTab === 'benchmarks' && <Benchmarks benchmarks={data.benchmarks} />}
+              {activeTab === 'roi' && <RoiCalculator />}
+              {activeTab === 'settings' && <SettingsPanel />}
+            </>
+          )}
         </main>
       </div>
     </div>

@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Drishti-AI — offline quality inspection for small manufacturers</title>
+<meta name="description" content="AI quality inspection that runs entirely offline on one machine. Defect detection, Hindi operator alerts, tool-wear prediction and demand forecasting for Indian MSME manufacturers." />
+<meta property="og:title" content="Drishti-AI" />
+<meta property="og:description" content="Offline AI quality inspection for Indian MSME manufacturers. No cloud, no internet, alerts in Hindi." />
+<meta property="og:type" content="website" />
+<style>
+  :root{
+    --bg:#0b0f18; --surface:#141926; --surface-2:#1b2130; --border:rgba(255,255,255,.09);
+    --text:#f3f5fb; --muted:#b1bacd; --dim:#79839a;
+    --brand:#7c83ff; --accent:#2dd4bf; --warn:#e0a800;
+    --max:1080px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--max); margin:0 auto; padding:0 24px}
+  a{color:var(--brand)}
+  code{background:var(--surface-2); padding:2px 6px; border-radius:4px; font-size:.9em}
+
+  header{padding:20px 0; position:sticky; top:0; background:rgba(11,15,24,.85);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--border); z-index:10}
+  .nav{display:flex; align-items:center; justify-content:space-between; gap:16px}
+  .brand{display:flex; align-items:center; gap:11px; font-weight:700; letter-spacing:-.02em; font-size:17px}
+  .nav-links{display:flex; gap:22px; font-size:14px}
+  .nav-links a{color:var(--muted); text-decoration:none}
+  .nav-links a:hover{color:var(--text)}
+  @media(max-width:680px){.nav-links{display:none}}
+
+  .hero{padding:88px 0 64px}
+  .eyebrow{display:inline-block; font-size:12.5px; font-weight:600; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--accent); background:rgba(45,212,191,.1);
+    border:1px solid rgba(45,212,191,.25); padding:5px 12px; border-radius:999px; margin-bottom:22px}
+  h1{font-size:clamp(34px,5.4vw,56px); line-height:1.08; letter-spacing:-.03em; margin:0 0 20px; max-width:17ch}
+  .lede{font-size:clamp(17px,2.1vw,20px); color:var(--muted); max-width:62ch; margin:0 0 32px}
+  .cta{display:flex; gap:12px; flex-wrap:wrap}
+  .btn{display:inline-block; padding:12px 22px; border-radius:10px; font-weight:600;
+    font-size:15px; text-decoration:none; transition:.15s}
+  .btn-primary{background:var(--brand); color:#0b0f18}
+  .btn-primary:hover{filter:brightness(1.1)}
+  .btn-ghost{border:1px solid var(--border); color:var(--text)}
+  .btn-ghost:hover{border-color:var(--dim)}
+
+  section{padding:64px 0; border-top:1px solid var(--border)}
+  h2{font-size:clamp(24px,3.2vw,32px); letter-spacing:-.02em; margin:0 0 14px}
+  .sub{color:var(--muted); max-width:64ch; margin:0 0 34px}
+
+  .grid{display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:24px}
+  .card h3{margin:0 0 8px; font-size:17px; letter-spacing:-.01em}
+  .card p{margin:0; color:var(--muted); font-size:14.5px}
+  .tag{font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--dim); display:block; margin-bottom:10px}
+
+  .alert{background:var(--surface-2); border-left:3px solid var(--brand);
+    border-radius:0 10px 10px 0; padding:18px 22px; margin:30px 0 18px}
+  .alert .lbl{font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--dim); display:block; margin-bottom:8px}
+  .alert p{margin:0; font-size:16.5px; line-height:1.75}
+
+  .stats{display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(158px,1fr))}
+  .stat{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px}
+  .stat .n{font-size:28px; font-weight:700; letter-spacing:-.02em; display:block}
+  .stat .l{font-size:13px; color:var(--muted); margin-top:4px; display:block; line-height:1.45}
+
+  .honest{background:var(--surface); border:1px solid rgba(224,168,0,.28); border-radius:14px; padding:28px}
+  .honest h2{margin-top:0}
+  .honest ul{margin:0; padding-left:20px; color:var(--muted)}
+  .honest li{margin-bottom:10px}
+  .honest li:last-child{margin-bottom:0}
+
+  footer{padding:44px 0 60px; border-top:1px solid var(--border); color:var(--dim); font-size:14px}
+  footer a{color:var(--muted)}
+  .foot{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#7c83ff"/><stop offset="1" stop-color="#2dd4bf"/>
+        </linearGradient></defs>
+        <rect width="40" height="40" rx="11" fill="url(#g)"/>
+        <path d="M8 20c3.6-6 8-9 12-9s8.4 3 12 9c-3.6 6-8 9-12 9s-8.4-3-12-9Z"
+              fill="none" stroke="#fff" stroke-width="2.1" stroke-linejoin="round" opacity=".95"/>
+        <circle cx="20" cy="20" r="4" fill="#fff"/>
+      </svg>
+      Drishti&#8288;-&#8288;AI
+    </div>
+    <nav class="nav-links">
+      <a href="#what">What it does</a>
+      <a href="#numbers">Results</a>
+      <a href="./demo/">Demo</a>
+      <a href="#honest">Limitations</a>
+      <a href="https://github.com/yashwanth-crypto/drishti-ai">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap hero">
+  <span class="eyebrow">Built for Indian MSME manufacturing</span>
+  <h1>Quality inspection that runs with the internet off.</h1>
+  <p class="lede">
+    A camera watches the part. A trained model flags the defect in milliseconds. The operator is
+    told what to do about it &mdash; in Hindi, not an English error code. All of it on one ordinary
+    machine on the shop floor, with no cloud subscription.
+  </p>
+  <div class="cta">
+    <a class="btn btn-primary" href="./demo/">Open the dashboard</a>
+    <a class="btn btn-ghost" href="https://github.com/yashwanth-crypto/drishti-ai">See the code</a>
+  </div>
+</div>
+
+<section id="what">
+  <div class="wrap">
+    <h2>Four modules, one screen</h2>
+    <p class="sub">
+      Most factory AI assumes a GPU, a cloud connection, and operators who read English dashboards.
+      A shop machining a few thousand parts a month has none of those.
+    </p>
+
+    <div class="grid">
+      <div class="card">
+        <span class="tag">Module 1</span>
+        <h3>Defect detection</h3>
+        <p>A MobileNetV2 classifier trained on real casting images from a foundry in Rajkot, Gujarat.
+           Pass, fail, or &ldquo;send this one to a human&rdquo;.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Module 2</span>
+        <h3>Alerts in Hindi</h3>
+        <p>The verdict becomes an instruction the person holding the part can act on, rather than a
+           class label and a probability.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Module 3</span>
+        <h3>Tool-wear prediction</h3>
+        <p>Remaining useful life estimated from vibration and current sensors, validated only on
+           tools the model never saw during training.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Module 4</span>
+        <h3>Demand forecasting</h3>
+        <p>Weekly demand per product category, with an 80% prediction interval rather than a single
+           misleading number.</p>
+      </div>
+    </div>
+
+    <div class="alert">
+      <span class="lbl">What the operator actually sees</span>
+      <p lang="hi">भाग अस्वीकृत &mdash; सतह पर दोष पाया गया। भाग को अलग रखें और गुणवत्ता निरीक्षक को दिखाएं।</p>
+    </div>
+    <p class="sub" style="margin-bottom:0">
+      <em>&ldquo;Part rejected &mdash; a surface defect was found. Set the part aside and show it to the
+      quality inspector.&rdquo;</em> That sentence matters more than the accuracy number. Nobody can act
+      on <code>DEFECT_CLASS_2 CONFIDENCE 0.94</code>.
+    </p>
+  </div>
+</section>
+
+<section id="numbers">
+  <div class="wrap">
+    <h2>Measured, not estimated</h2>
+    <p class="sub">Every figure below comes from a held-out set the model never trained on.</p>
+    <p class="sub" style="margin-top:-18px">
+      The <a href="./demo/">dashboard demo</a> shows these results as the system displays them.
+      It runs on recorded output &mdash; live inference needs the models on a local machine.
+    </p>
+    <div class="stats">
+      <div class="stat"><span class="n">99.3%</span><span class="l">defect accuracy on 715 held-out parts</span></div>
+      <div class="stat"><span class="n">~9&thinsp;ms</span><span class="l">per inspection</span></div>
+      <div class="stat"><span class="n">19.7%</span><span class="l">demand forecast WAPE</span></div>
+      <div class="stat"><span class="n">0</span><span class="l">internet connections required</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>It knows when it doesn&rsquo;t know</h2>
+    <p class="sub">
+      A two-class classifier has exactly two answers. Show it something it has never seen and it does
+      not say &ldquo;I don&rsquo;t know&rdquo; &mdash; it picks one, confidently. We measured it: random
+      noise scores 99.9% confident.
+    </p>
+    <p class="sub">
+      So the system stopped trusting confidence. It measures how far an image sits from the parts it
+      was actually trained on. Too far, and it refuses to judge &mdash; routing the part to a human with
+      an alert that says <strong>&ldquo;this part was not recognised&rdquo;</strong>, not
+      &ldquo;this part is good&rdquo;.
+    </p>
+    <div class="stats">
+      <div class="stat"><span class="n">120/120</span><span class="l">real castings correctly accepted</span></div>
+      <div class="stat"><span class="n">86/86</span><span class="l">foreign images correctly caught</span></div>
+      <div class="stat"><span class="n">unchanged</span><span class="l">classification accuracy</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="honest">
+  <div class="wrap">
+    <div class="honest">
+      <h2>What it isn&rsquo;t, yet</h2>
+      <p class="sub">
+        It is easy to make a demo look finished. This is a working proof of concept, tested honestly,
+        and not yet run on a real factory floor.
+      </p>
+      <ul>
+        <li><strong>No pilot has run.</strong> Nothing here has been deployed in a working shop.</li>
+        <li><strong>Sensor data is replayed</strong> from a recorded dataset, not read from live hardware.</li>
+        <li><strong>The casting images are real industrial data</strong> &mdash; but castings, not the
+            CNC-turned parts we are ultimately aiming at.</li>
+        <li><strong>The ROI figures in the app are design targets</strong>, not measured outcomes from
+            a deployment.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Next: one real shop</h2>
+    <p class="sub">
+      A mounted camera, consistent lighting, and a few hundred images of one part type &mdash; labelled
+      by the people who already inspect them. That is what turns a test-set number into a factory
+      number. If you run a shop and this sounds useful, we would like to talk.
+    </p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://www.linkedin.com/company/drishti-ai-msme">Follow on LinkedIn</a>
+      <a class="btn btn-ghost" href="https://github.com/yashwanth-crypto/drishti-ai">Read the code</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div>Drishti&#8288;-&#8288;AI &mdash; proof of concept, real model output on public datasets.</div>
+    <div>
+      <a href="https://github.com/yashwanth-crypto/drishti-ai">GitHub</a> &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/company/drishti-ai-msme">LinkedIn</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

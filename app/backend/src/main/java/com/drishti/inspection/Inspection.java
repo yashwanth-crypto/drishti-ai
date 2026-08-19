@@ -1,0 +1,88 @@
+package com.drishti.inspection;
+
+import jakarta.persistence.*;
+import java.time.Instant;
+
+@Entity
+@Table(name = "inspections")
+public class Inspection {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String partId;
+    private Instant timestamp;
+    private String passFail;
+    private String defectType;
+    private Double confidence;
+    private Double inferenceMs;
+
+    @Column(columnDefinition = "text")
+    private String alertHi;
+
+    private String imagePath;
+
+    /**
+     * The operator's own call on what this part actually is — the ground-truth
+     * label, not "agree"/"disagree". Null until someone reviews it. Together
+     * with the stored image this is the retraining set the pilot accumulates.
+     */
+    private String operatorVerdict;
+
+    /** Whether the model's call matched the operator's. Derived, never sent in. */
+    private Boolean wasCorrect;
+
+    /**
+     * False when the image sat outside the training distribution. Needed to
+     * explain a review verdict: a part can be flagged either because the model
+     * was not confident enough, or because it did not recognise the part at
+     * all, and those mean different things to an operator.
+     */
+    private Boolean recognised;
+
+    private String feedbackBy;
+    private Instant feedbackAt;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getPartId() { return partId; }
+    public void setPartId(String partId) { this.partId = partId; }
+
+    public Instant getTimestamp() { return timestamp; }
+    public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
+
+    public String getPassFail() { return passFail; }
+    public void setPassFail(String passFail) { this.passFail = passFail; }
+
+    public String getDefectType() { return defectType; }
+    public void setDefectType(String defectType) { this.defectType = defectType; }
+
+    public Double getConfidence() { return confidence; }
+    public void setConfidence(Double confidence) { this.confidence = confidence; }
+
+    public Double getInferenceMs() { return inferenceMs; }
+    public void setInferenceMs(Double inferenceMs) { this.inferenceMs = inferenceMs; }
+
+    public String getAlertHi() { return alertHi; }
+    public void setAlertHi(String alertHi) { this.alertHi = alertHi; }
+
+    public String getImagePath() { return imagePath; }
+    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
+
+    public String getOperatorVerdict() { return operatorVerdict; }
+    public void setOperatorVerdict(String operatorVerdict) { this.operatorVerdict = operatorVerdict; }
+
+    public Boolean getWasCorrect() { return wasCorrect; }
+    public void setWasCorrect(Boolean wasCorrect) { this.wasCorrect = wasCorrect; }
+
+    public Boolean getRecognised() { return recognised; }
+    public void setRecognised(Boolean recognised) { this.recognised = recognised; }
+
+    public String getFeedbackBy() { return feedbackBy; }
+    public void setFeedbackBy(String feedbackBy) { this.feedbackBy = feedbackBy; }
+
+    public Instant getFeedbackAt() { return feedbackAt; }
+    public void setFeedbackAt(Instant feedbackAt) { this.feedbackAt = feedbackAt; }
+}

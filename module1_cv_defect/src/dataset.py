@@ -10,17 +10,38 @@ IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
 
-def build_transforms(image_size: int = 224, train: bool = True) -> transforms.Compose:
-    if train:
+def build_transforms(image_size: int = 224, train: bool = True,
+                     strong: bool = False) -> transforms.Compose:
+    """
+    `strong` widens augmentation beyond flips and small rotations.
+
+    The published model was trained without it, and passing strong=True changes
+    what a rerun produces — so it is off by default and the reported results stay
+    reproducible. Turn it on when training for a deployment whose camera is not
+    the one the dataset was shot on: the casting images vary by only about +/-6
+    brightness levels out of 255, so a model fitted on them has never seen a
+    different lamp, a warmer white balance, or a part photographed off-centre.
+    """
+    if not train:
         return transforms.Compose([
             transforms.Resize((image_size, image_size)),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomRotation(10),
             transforms.ToTensor(),
             transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
         ])
-    return transforms.Compose([
+
+    augment = [
         transforms.Resize((image_size, image_size)),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(10),
+    ]
+    if strong:
+        augment += [
+            transforms.RandomVerticalFlip(),
+            transforms.RandomAffine(degrees=20, translate=(0.08, 0.08), scale=(0.85, 1.15)),
+            transforms.ColorJitter(brightness=0.35, contrast=0.35, saturation=0.25, hue=0.03),
+            transforms.RandomPerspective(distortion_scale=0.2, p=0.4),
+        ]
+    return transforms.Compose(augment + [
         transforms.ToTensor(),
         transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
     ])

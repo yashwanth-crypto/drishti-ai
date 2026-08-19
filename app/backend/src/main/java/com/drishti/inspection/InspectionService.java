@@ -1,0 +1,179 @@
+package com.drishti.inspection;
+
+import com.drishti.alert.AlertService;
+import com.drishti.ml.InferenceClient;
+import com.drishti.settings.Settings;
+import com.drishti.settings.SettingsRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+@Service
+public class InspectionService {
+
+    /** Model called it good, but below the owner's confidence bar. */
+    public static final String REVIEW = "review";
+
+    private final InspectionRepository repository;
+    private final InferenceClient inference;
+    private final AlertService alerts;
+    private final SettingsRepository settings;
+    private final Path imageStorage;
+
+    public InspectionService(InspectionRepository repository,
+                             InferenceClient inference,
+                             AlertService alerts,
+                             SettingsRepository settings,
+                             @Value("${drishti.image-storage}") String imageStorage) {
+        this.repository = repository;
+        this.inference = inference;
+        this.alerts = alerts;
+        this.settings = settings;
+        this.imageStorage = Paths.get(imageStorage).toAbsolutePath().normalize();
+    }
+
+    public Inspection inspect(MultipartFile image, String partId) throws IOException {
+        byte[] bytes = image.getBytes();
+        InferenceClient.VisionResult result = inference.predictVision(bytes, image.getOriginalFilename());
+
+        Files.createDirectories(imageStorage);
+        Path stored = imageStorage.resolve(UUID.randomUUID() + ".jpg");
+        Files.write(stored, bytes);
+
+        String verdict = decide(result);
+        // Three different things to tell an operator: the model's call, "it looks
+        // good but I'm not confident", and "I don't recognise this part at all".
+        // The last one must not read as a quality judgement.
+        String alertCode;
+        if (Boolean.FALSE.equals(result.recognised())) {
+            alertCode = "not_recognised";
+        } else if (REVIEW.equals(verdict)) {
+            alertCode = "needs_review";
+        } else {
+            alertCode = result.defect_type();
+        }
+
+        Inspection inspection = new Inspection();
+        inspection.setPartId(partId);
+        inspection.setTimestamp(Instant.now());
+        inspection.setPassFail(verdict);
+        inspection.setDefectType(result.defect_type());
+        inspection.setConfidence(result.confidence());
+        inspection.setInferenceMs(result.inference_ms());
+        inspection.setAlertHi(alerts.generateAlert(alertCode, result.confidence(), partId));
+        inspection.setImagePath(stored.toString());
+        inspection.setRecognised(result.recognised());
+
+        return repository.save(inspection);
+    }
+
+    /**
+     * A part the model does not recognise goes to a human, whatever it guessed:
+     * a classifier trained on one foundry's camera rig will still answer
+     * confidently for a part it has never seen, and that answer means nothing.
+     *
+     * Otherwise, a part called defective always fails, and a part called good
+     * passes only if the model is confident enough. The threshold therefore only
+     * ever makes the system stricter, never laxer.
+     */
+    private String decide(InferenceClient.VisionResult result) {
+        if (Boolean.FALSE.equals(result.recognised())) {
+            return REVIEW;
+        }
+        if (!"pass".equals(result.pass_fail())) {
+            return result.pass_fail();
+        }
+        double threshold = settings.findAll().stream().findFirst()
+                .map(Settings::getDefectThreshold)
+                .orElse(0.5);
+        return result.confidence() >= threshold ? "pass" : REVIEW;
+    }
+
+    /**
+     * The stored image for an inspection. Resolves under the configured storage
+     * directory only, so a tampered path column can't read arbitrary files.
+     */
+    public byte[] imageFor(Long id) throws IOException {
+        Inspection inspection = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("No inspection " + id));
+        if (inspection.getImagePath() == null) {
+            throw new IllegalArgumentException("Inspection " + id + " has no stored image");
+        }
+        Path path = Paths.get(inspection.getImagePath()).toAbsolutePath().normalize();
+        if (!path.startsWith(imageStorage)) {
+            throw new IllegalArgumentException("Image path outside storage directory");
+        }
+        return Files.readAllBytes(path);
+    }
+
+    public List<Inspection> list(String filter) {
+        if ("pass".equals(filter) || "fail".equals(filter) || REVIEW.equals(filter)) {
+            return repository.findByPassFailOrderByTimestampDesc(filter);
+        }
+        return repository.findAllByOrderByTimestampDesc();
+    }
+
+    /** The classes an operator can label a part as. */
+    private static final Set<String> VERDICTS = Set.of("ok_front", "def_front");
+
+    /**
+     * Records what the operator says the part actually is. The verdict is the
+     * true label rather than agree/disagree, so the rows can be used directly as
+     * retraining data later.
+     */
+    public Inspection recordFeedback(Long id, String operatorVerdict, String username) {
+        if (operatorVerdict == null || !VERDICTS.contains(operatorVerdict)) {
+            throw new IllegalArgumentException(
+                    "operatorVerdict must be one of " + VERDICTS + ", got: " + operatorVerdict);
+        }
+        Inspection inspection = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("No inspection " + id));
+
+        inspection.setOperatorVerdict(operatorVerdict);
+        inspection.setWasCorrect(operatorVerdict.equals(inspection.getDefectType()));
+        inspection.setFeedbackBy(username);
+        inspection.setFeedbackAt(Instant.now());
+        return repository.save(inspection);
+    }
+
+    public Kpis kpis() {
+        long total = repository.count();
+        long passCount = repository.countByPassFail("pass");
+        long failCount = repository.countByPassFail("fail");
+        long reviewCount = repository.countByPassFail(REVIEW);
+        List<Inspection> all = repository.findAll();
+        double avgMs = all.stream()
+                .filter(i -> i.getInferenceMs() != null)
+                .mapToDouble(Inspection::getInferenceMs)
+                .average().orElse(0.0);
+        double passRate = total == 0 ? 0.0 : (double) passCount / total;
+
+        // Measured against operator corrections, so it tracks the model in this
+        // shop rather than on the held-out test set.
+        List<Inspection> reviewed = all.stream()
+                .filter(i -> i.getWasCorrect() != null)
+                .toList();
+        long agreed = reviewed.stream().filter(Inspection::getWasCorrect).count();
+        Double agreementRate = reviewed.isEmpty()
+                ? null
+                : Math.round((double) agreed / reviewed.size() * 10000) / 10000.0;
+
+        return new Kpis(total, passCount, failCount, reviewCount,
+                Math.round(passRate * 10000) / 10000.0,
+                Math.round(avgMs * 100) / 100.0,
+                reviewed.size(), agreementRate);
+    }
+
+    public record Kpis(long totalInspections, long passCount, long failCount, long reviewCount,
+                       double passRate, double avgInferenceMs,
+                       long feedbackCount, Double agreementRate) {}
+}

@@ -22,7 +22,10 @@ export default function Overview({ data }) {
             <span className="stat-icon"><IconLayers size={17} /></span>
           </div>
           <div className="stat-value"><AnimatedNumber value={kpis.total_inspections} /></div>
-          <div className="stat-sub">{kpis.fail_count} flagged, {kpis.pass_count} passed</div>
+          <div className="stat-sub">
+            {kpis.fail_count} flagged, {kpis.pass_count} passed
+            {kpis.review_count > 0 && `, ${kpis.review_count} to review`}
+          </div>
         </div>
         <div className="stat-tile">
           <div className="stat-tophead">
@@ -54,6 +57,20 @@ export default function Overview({ data }) {
           </div>
           <div className="stat-sub">tools monitored, wear-based RUL model</div>
         </div>
+        {kpis.feedback_count > 0 && (
+          <div className="stat-tile">
+            <div className="stat-tophead">
+              <span className="stat-label">Operator agreement</span>
+              <span className="stat-icon"><IconTarget size={17} /></span>
+            </div>
+            <div className="stat-value">
+              <AnimatedNumber value={kpis.agreement_rate * 100} format={(v) => `${v.toFixed(0)}%`} />
+            </div>
+            <div className="stat-sub">
+              on {kpis.feedback_count} part{kpis.feedback_count === 1 ? '' : 's'} an operator checked
+            </div>
+          </div>
+        )}
         <div className="stat-tile">
           <div className="stat-tophead">
             <span className="stat-label">Demand forecast WAPE</span>
@@ -74,7 +91,10 @@ export default function Overview({ data }) {
             <div className="overview-row" key={insp.part_id}>
               <span className="overview-time">{formatTime(insp.timestamp)}</span>
               <span className="overview-part">{insp.part_id}</span>
-              <StatusBadge status={insp.pass_fail} label={insp.pass_fail.toUpperCase()} />
+              <StatusBadge
+                status={insp.pass_fail}
+                label={insp.pass_fail === 'review' ? 'REVIEW' : insp.pass_fail.toUpperCase()}
+              />
               <span className="overview-conf">{(insp.confidence * 100).toFixed(1)}%</span>
               <span className="overview-alert">{insp.alert_hi}</span>
             </div>

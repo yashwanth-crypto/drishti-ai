@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import StatusBadge from './StatusBadge.jsx'
+import AuthImage from './AuthImage.jsx'
+import FeedbackControl from './FeedbackControl.jsx'
 import { IconScan } from './Icons.jsx'
 
 function formatTime(iso) {
@@ -11,13 +13,15 @@ function formatTime(iso) {
 const FILTERS = [
   { id: 'all', label: 'All' },
   { id: 'fail', label: 'Failed' },
+  { id: 'review', label: 'Needs review' },
   { id: 'pass', label: 'Passed' },
 ]
 
-export default function InspectionLog({ inspections }) {
+export default function InspectionLog({ inspections, onFeedback }) {
   const [filter, setFilter] = useState('all')
   const passCount = inspections.filter((i) => i.pass_fail === 'pass').length
-  const failCount = inspections.length - passCount
+  const reviewCount = inspections.filter((i) => i.pass_fail === 'review').length
+  const failCount = inspections.length - passCount - reviewCount
   const avgConf = inspections.reduce((a, i) => a + i.confidence, 0) / inspections.length
 
   const sorted = [...inspections].reverse()
@@ -29,6 +33,8 @@ export default function InspectionLog({ inspections }) {
       <p className="card-sub">
         Every row is a real prediction from the trained MobileNetV2 classifier (Module 1), paired with the
         Hindi alert generated for it (Module 2) — run on held-out casting test images, not live camera capture.
+        Marking a call <strong>correct</strong> or <strong>wrong</strong> stores the operator&rsquo;s own label
+        alongside the image, which is what a pilot accumulates as retraining data.
       </p>
 
       <div className="insp-toolbar">
@@ -38,6 +44,12 @@ export default function InspectionLog({ inspections }) {
           <span className="good-text"><strong>{passCount}</strong> passed</span>
           <span className="dot-sep" />
           <span className="crit-text"><strong>{failCount}</strong> flagged</span>
+          {reviewCount > 0 && (
+            <>
+              <span className="dot-sep" />
+              <span className="warn-text"><strong>{reviewCount}</strong> need review</span>
+            </>
+          )}
           <span className="dot-sep" />
           <span><strong>{(avgConf * 100).toFixed(1)}%</strong> avg confidence</span>
         </div>
@@ -63,22 +75,23 @@ export default function InspectionLog({ inspections }) {
           <span>Confidence</span>
           <span>Latency</span>
           <span>Alert (Hindi)</span>
+          <span>Model call</span>
         </div>
         {sorted.map((insp) => (
-          <div className="insp-row" key={insp.part_id}>
+          <div className="insp-row" key={insp.id ?? insp.part_id}>
             <span className="insp-time">{formatTime(insp.timestamp)}</span>
             <span className="insp-thumb">
-              {insp.thumb_b64 ? (
-                <img src={`data:image/jpeg;base64,${insp.thumb_b64}`} alt={insp.part_id} />
-              ) : (
-                <span className="insp-thumb-placeholder" />
-              )}
+              <AuthImage src={insp.image_url} alt={insp.part_id} />
             </span>
             <span className="insp-part">{insp.part_id}</span>
-            <StatusBadge status={insp.pass_fail} label={insp.pass_fail.toUpperCase()} />
+            <StatusBadge
+              status={insp.pass_fail}
+              label={insp.pass_fail === 'review' ? 'REVIEW' : insp.pass_fail.toUpperCase()}
+            />
             <span className="insp-conf">{(insp.confidence * 100).toFixed(1)}%</span>
             <span className="insp-latency">{insp.inference_ms.toFixed(0)}ms</span>
             <span className="insp-alert">{insp.alert_hi}</span>
+            <FeedbackControl inspection={insp} onRecorded={onFeedback} />
           </div>
         ))}
       </div>
