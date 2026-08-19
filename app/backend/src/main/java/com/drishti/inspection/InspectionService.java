@@ -71,6 +71,7 @@ public class InspectionService {
         inspection.setInferenceMs(result.inference_ms());
         inspection.setAlertHi(alerts.generateAlert(alertCode, result.confidence(), partId));
         inspection.setImagePath(stored.toString());
+        inspection.setRecognised(result.recognised());
 
         return repository.save(inspection);
     }

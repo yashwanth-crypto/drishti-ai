@@ -33,6 +33,14 @@ public class Inspection {
     /** Whether the model's call matched the operator's. Derived, never sent in. */
     private Boolean wasCorrect;
 
+    /**
+     * False when the image sat outside the training distribution. Needed to
+     * explain a review verdict: a part can be flagged either because the model
+     * was not confident enough, or because it did not recognise the part at
+     * all, and those mean different things to an operator.
+     */
+    private Boolean recognised;
+
     private String feedbackBy;
     private Instant feedbackAt;
 
@@ -68,6 +76,9 @@ public class Inspection {
 
     public Boolean getWasCorrect() { return wasCorrect; }
     public void setWasCorrect(Boolean wasCorrect) { this.wasCorrect = wasCorrect; }
+
+    public Boolean getRecognised() { return recognised; }
+    public void setRecognised(Boolean recognised) { this.recognised = recognised; }
 
     public String getFeedbackBy() { return feedbackBy; }
     public void setFeedbackBy(String feedbackBy) { this.feedbackBy = feedbackBy; }
