@@ -42,6 +42,34 @@ def pressed(key: int, *chars: str) -> bool:
     return key in {ord(c) for ch in chars for c in (ch.lower(), ch.upper())}
 
 
+def list_cameras(max_index: int = 6) -> None:
+    """
+    Which index maps to which camera is not knowable in advance on Windows,
+    and a laptop's built-in camera usually takes 0 -- so a plugged-in USB
+    webcam is typically 1. Probing beats guessing.
+    """
+    print("probing camera indices (a few seconds)...")
+    found = []
+    for i in range(max_index):
+        cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)
+        if cap.isOpened():
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+            ok, frame = cap.read()
+            if ok:
+                h, w = frame.shape[:2]
+                print(f"  --source {i}    working, {w}x{h}")
+                found.append(i)
+            cap.release()
+    if not found:
+        print("  no cameras found. Check the cable, and close anything else "
+              "using the camera -- Teams, Zoom, the Windows Camera app.")
+        return
+    print("\nTry each and keep the one showing the picture you want:")
+    for i in found:
+        print(f"  python src/capture.py --source {i}")
+
+
 def centre_square(frame):
     h, w = frame.shape[:2]
     side = min(h, w)
@@ -85,7 +113,13 @@ def main():
                     help="saved image size; 512 leaves headroom above the model's 224")
     ap.add_argument("--prefix", default="",
                     help="tag for this session, e.g. a part or shop name")
+    ap.add_argument("--list-cameras", action="store_true",
+                    help="show which camera indices work, then exit")
     args = ap.parse_args()
+
+    if args.list_cameras:
+        list_cameras()
+        return
 
     source = int(args.source) if args.source.isdigit() else args.source
     cap = cv2.VideoCapture(source)
