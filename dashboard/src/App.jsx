@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { loadDashboard } from './api.js'
 import { getSession, logout, onSessionChange } from './auth.js'
+import { DEMO_SESSION, demoDashboard, isDemoMode, probeBackend } from './demo.js'
 import Login from './components/Login.jsx'
 import Overview from './components/Overview.jsx'
 import InspectionLog from './components/InspectionLog.jsx'
@@ -49,11 +50,26 @@ export default function App() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [session, setSession] = useState(getSession)
+  const [demo, setDemo] = useState(false)
+  const [probing, setProbing] = useState(true)
   const active = TABS.find((t) => t.id === activeTab)
 
   const refresh = useCallback(() => {
     setError(null)
+    if (isDemoMode()) {
+      setData(demoDashboard())
+      return
+    }
     loadDashboard().then(setData).catch((err) => setError(err.message))
+  }, [])
+
+  // A static host has no backend to log into, so find out before gating on a
+  // login the visitor could never complete.
+  useEffect(() => {
+    probeBackend().then((isDemo) => {
+      setDemo(isDemo)
+      setProbing(false)
+    })
   }, [])
 
   // An expired token clears the session from inside api.js, which drops the UI
@@ -61,11 +77,15 @@ export default function App() {
   useEffect(() => onSessionChange(setSession), [])
 
   useEffect(() => {
-    if (session) refresh()
+    if (probing) return
+    if (demo || session) refresh()
     else setData(null)
-  }, [session, refresh])
+  }, [probing, demo, session, refresh])
 
-  if (!session) return <Login onSignedIn={() => setSession(getSession())} />
+  if (probing) return null
+  if (!demo && !session) return <Login onSignedIn={() => setSession(getSession())} />
+
+  const account = demo ? DEMO_SESSION : session
 
   return (
     <div className="app-shell">
@@ -96,10 +116,10 @@ export default function App() {
 
         <div className="sidebar-user">
           <div className="sidebar-user-id">
-            <span className="sidebar-username">{session.username}</span>
-            <span className={`role-chip ${session.role === 'OWNER' ? 'owner' : ''}`}>{session.role}</span>
+            <span className="sidebar-username">{account.username}</span>
+            <span className={`role-chip ${account.role === 'OWNER' ? 'owner' : ''}`}>{account.role}</span>
           </div>
-          <button className="signout-btn" onClick={logout}>Sign out</button>
+          {!demo && <button className="signout-btn" onClick={logout}>Sign out</button>}
         </div>
 
         <div className="sidebar-foot">
@@ -115,12 +135,19 @@ export default function App() {
             <p className="topbar-sub">{active.sub}</p>
           </div>
           <div className="header-meta">
-            <span className="live-dot" />
-            Live dashboard
+            <span className={`live-dot ${demo ? 'idle' : ''}`} />
+            {demo ? 'Recorded demo' : 'Live dashboard'}
           </div>
         </header>
 
         <main className="app-content">
+          {demo && (
+            <div className="demo-banner">
+              <strong>Recorded demo.</strong> These are real measured results from the
+              trained models, saved from earlier runs &mdash; not computed live. Running
+              a new image through the model needs the full stack on a local machine.
+            </div>
+          )}
           {error && (
             <div className="card">
               <h2>Something went wrong</h2>

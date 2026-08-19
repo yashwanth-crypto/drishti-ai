@@ -66,3 +66,6 @@ linkedin-post.md
 # OOD profile: 12.5 MB of covariance matrix, and useless without the dataset.
 # Rebuild with: python src/ood.py fit  (from module1_cv_defect/)
 module1_cv_defect/models/ood_stats.npz
+
+# Built by the Pages workflow from dashboard/
+site/demo/
